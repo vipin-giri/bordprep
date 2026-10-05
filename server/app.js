@@ -74,22 +74,17 @@ async function ensureReady() {
   return readyPromise;
 }
 
-app.use(async (_req, res, next) => {
+app.get("/", (_req, res) => {
+  res.json({ ok: true, service: "parikshacrack-api", runtime: process.env.VERCEL ? "vercel" : "node" });
+});
+
+app.get("/api/health", async (_req, res) => {
   try {
     await ensureReady();
-    next();
+    res.json({ ok: true, service: "parikshacrack-api", runtime: process.env.VERCEL ? "vercel" : "node" });
   } catch (err) {
-    console.error("API init failed:", err);
-    res.status(500).json({ error: err.message || "Server failed to start." });
+    res.status(500).json({ ok: false, error: err.message || "Health check failed." });
   }
-});
-
-app.get("/", (_req, res) => {
-  res.json({ ok: true, service: "parikshacrack-api" });
-});
-
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "parikshacrack-api" });
 });
 
 app.post("/api/auth/register", register);

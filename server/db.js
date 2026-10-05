@@ -6,22 +6,40 @@ import mysql from "mysql2/promise";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
-const databaseUrl = process.env.DATABASE_URL;
+let _pool = null;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is not set. Copy .env.example to .env and add your TiDB connection string.");
+export function getPool() {
+  if (_pool) return _pool;
+
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is not set. Add it in Vercel Environment Variables.");
+  }
+
+  _pool = mysql.createPool({
+    uri: databaseUrl,
+    ssl: {
+      minVersion: "TLSv1.2",
+      rejectUnauthorized: true,
+    },
+    waitForConnections: true,
+    connectionLimit: 5,
+    enableKeepAlive: true,
+  });
+  return _pool;
 }
 
-export const pool = mysql.createPool({
-  uri: databaseUrl,
-  ssl: {
-    minVersion: "TLSv1.2",
-    rejectUnauthorized: true,
+/** @type {import('mysql2/promise').Pool} */
+export const pool = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const real = getPool();
+      const value = real[prop];
+      return typeof value === "function" ? value.bind(real) : value;
+    },
   },
-  waitForConnections: true,
-  connectionLimit: 10,
-  enableKeepAlive: true,
-});
+);
 
 export async function initSchema() {
   await pool.query(`
