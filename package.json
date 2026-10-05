@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "build": "vite build",
     "dev": "concurrently -k -n web,api -c cyan,green \"vite\" \"node --watch server/index.js\"",
