@@ -1,6 +1,17 @@
 export const TOKEN_KEY = "parikshacrack_token";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+/** Production API host when VITE_API_URL is missing from the Vercel build. */
+const DEFAULT_PROD_API = "https://bordprep-server.vercel.app";
+
+function resolveApiBase() {
+  const fromEnv = String(import.meta.env.VITE_API_URL ?? "").trim().replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
+  // Local Vite uses proxy → relative "/api". Production must hit the API project.
+  if (import.meta.env.PROD) return DEFAULT_PROD_API;
+  return "";
+}
+
+const API_BASE = resolveApiBase();
 
 export type AuthUser = {
   id: string;
