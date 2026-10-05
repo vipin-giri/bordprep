@@ -6,7 +6,10 @@ import multer from "multer";
 import { pool } from "./db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const UPLOADS_DIR = path.join(__dirname, "..", "uploads", "papers");
+// Vercel serverless FS is read-only except /tmp (files are ephemeral).
+export const UPLOADS_DIR = process.env.VERCEL
+  ? path.join("/tmp", "uploads", "papers")
+  : path.join(__dirname, "..", "uploads", "papers");
 
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
