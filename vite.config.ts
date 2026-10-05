@@ -17,6 +17,8 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  // Allow API_URL (and VITE_*) from env / Vercel to reach the browser bundle.
+  envPrefix: ['VITE_', 'API_'],
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
