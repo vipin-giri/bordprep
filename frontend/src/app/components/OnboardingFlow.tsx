@@ -356,7 +356,7 @@ export default function OnboardingFlow() {
 
 function StepGoalType({ state, setState }: { state: OnboardingState; setState: React.Dispatch<React.SetStateAction<OnboardingState>> }) {
   const options: { value: GoalType; label: string; icon: LucideIcon; sub: string }[] = [
-    { value: "board",       label: "Board Exams",        icon: School, sub: "Classes 8–12, SSC, HSC" },
+    { value: "board",       label: "School / College",   icon: School, sub: "Classes 8–12, SSC, HSC" },
     { value: "competitive", label: "Competitive Exams",  icon: Trophy, sub: "NEET, JEE Mains/Advanced, MHT-CET" },
     { value: "both",        label: "Both!",              icon: Layers, sub: "Board + competitive prep together" },
   ];
