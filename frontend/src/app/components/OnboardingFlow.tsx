@@ -371,7 +371,14 @@ function StepGoalType({ state, setState }: { state: OnboardingState; setState: R
           return (
             <button
               key={opt.value}
-              onClick={() => setState(prev => ({ ...prev, goalType: opt.value }))}
+              onClick={() => setState(prev => ({
+                ...prev,
+                goalType: opt.value,
+                // Both path: only Class 11 & 12 (drop 8–10 if previously selected)
+                boardStandards: opt.value === "both"
+                  ? prev.boardStandards.filter(s => s === "11" || s === "12")
+                  : prev.boardStandards,
+              }))}
               className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-150 min-h-[80px] ${
                 isSelected
                   ? "border-[#1E3A8A] bg-[#1E3A8A]/5"
@@ -405,6 +412,11 @@ function StepGoalType({ state, setState }: { state: OnboardingState; setState: R
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StepStandard({ state, setState }: { state: OnboardingState; setState: React.Dispatch<React.SetStateAction<OnboardingState>> }) {
+  // Both → Class 11 & 12 only. School/College (board) keeps 8–12.
+  const availableStandards = state.goalType === "both"
+    ? STANDARDS.filter(s => s.value === "11" || s.value === "12")
+    : STANDARDS;
+
   const toggle = (std: Standard) => {
     setState(prev => {
       const already = prev.boardStandards.includes(std);
@@ -416,9 +428,13 @@ function StepStandard({ state, setState }: { state: OnboardingState; setState: R
   return (
     <div>
       <h2 className="text-xl font-bold text-gray-900 font-['Poppins'] mb-1">Which class(es) are you in?</h2>
-      <p className="text-sm text-gray-500 mb-6">Select all that apply. You can prepare for multiple classes.</p>
+      <p className="text-sm text-gray-500 mb-6">
+        {state.goalType === "both"
+          ? "For Both, choose Class 11 and/or Class 12 only."
+          : "Select all that apply. You can prepare for multiple classes."}
+      </p>
       <div className="flex flex-col gap-3">
-        {STANDARDS.map(std => {
+        {availableStandards.map(std => {
           const isSelected = state.boardStandards.includes(std.value);
           return (
             <button
