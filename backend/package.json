@@ -1,13 +1,18 @@
 {
-  "name": "bordprep-server",
+  "name": "bordprep-backend",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "engines": {
     "node": "24.x"
   },
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "bordprep": "file:..",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",

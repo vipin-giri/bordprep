@@ -3,6 +3,8 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Prefer backend/.env; fall back to repo-root .env for local convenience.
+dotenv.config({ path: path.join(__dirname, ".env") });
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 import { app, ensureReady } from "./app.js";

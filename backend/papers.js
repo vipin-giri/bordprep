@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Vercel serverless FS is read-only except /tmp (files are ephemeral).
 export const UPLOADS_DIR = process.env.VERCEL
   ? path.join("/tmp", "uploads", "papers")
-  : path.join(__dirname, "..", "uploads", "papers");
+  : path.join(__dirname, "uploads", "papers");
 
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 

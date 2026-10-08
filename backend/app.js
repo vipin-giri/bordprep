@@ -53,7 +53,27 @@ import {
 
 const app = express();
 
-app.use(cors({ origin: true }));
+/** FRONTEND_ORIGIN = comma-separated allowlist. Empty = reflect request origin (dev-friendly). */
+function corsOptions() {
+  const raw = String(process.env.FRONTEND_ORIGIN || process.env.CORS_ORIGINS || "").trim();
+  const allowed = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  if (!allowed.length) {
+    return { origin: true, credentials: true };
+  }
+  return {
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowed.includes("*") || allowed.includes(origin)) return callback(null, true);
+      // Allow any *.vercel.app preview if a vercel.app origin is listed
+      const allowVercelPreviews = allowed.some((o) => o.includes("vercel.app"));
+      if (allowVercelPreviews && /\.vercel\.app$/i.test(origin)) return callback(null, true);
+      return callback(null, false);
+    },
+    credentials: true,
+  };
+}
+
+app.use(cors(corsOptions()));
 app.use(express.json({ limit: "1mb" }));
 
 let readyPromise = null;
