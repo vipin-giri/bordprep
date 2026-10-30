@@ -1,4 +1,5 @@
 import { AppProvider, useApp } from "./components/context/AppContext";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { LandingPage } from "./components/LandingPage";
 import { LoginModal, LoginPage, AdminLoginShim, RegisterPage, VerifyOTPPage, ForgotPasswordPage, ResetPasswordPage } from "./components/AuthPages";
 import OnboardingFlow from "./components/OnboardingFlow";
@@ -95,7 +96,9 @@ export default function App() {
     <AppProvider>
       {/* Global Login Modal — renders on top of any page, handles both Student & Admin */}
       <LoginModal />
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </AppProvider>
   );
 }

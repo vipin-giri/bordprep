@@ -38,24 +38,36 @@ function CountdownBanner({ days, label, category }: { days: number; label: strin
   );
 }
 
+// Convert date to IST (UTC+5:30) date key
 function dayKey(date: string | Date) {
+  if (!date) return "";
   const d = new Date(date);
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(d.getTime() + istOffset);
+  return `${istDate.getUTCFullYear()}-${istDate.getUTCMonth() + 1}-${istDate.getUTCDate()}`;
 }
 
 function computeStudyStreak(dates: string[]) {
-  const days = new Set(dates.map(dayKey));
+  const days = new Set(dates.map(dayKey).filter(Boolean));
   if (!days.size) return 0;
-  const cursor = new Date();
-  cursor.setHours(0, 0, 0, 0);
-  if (!days.has(dayKey(cursor))) {
-    cursor.setDate(cursor.getDate() - 1);
-    if (!days.has(dayKey(cursor))) return 0;
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const now = new Date();
+  const cursor = new Date(now.getTime() + istOffset);
+  const todayKey = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}-${cursor.getUTCDate()}`;
+  if (!days.has(todayKey)) {
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    const yesterdayKey = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}-${cursor.getUTCDate()}`;
+    if (!days.has(yesterdayKey)) return 0;
   }
   let streak = 0;
-  while (days.has(dayKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
+  while (true) {
+    const key = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}-${cursor.getUTCDate()}`;
+    if (days.has(key)) {
+      streak += 1;
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    } else {
+      break;
+    }
   }
   return streak;
 }
@@ -219,7 +231,7 @@ export function Dashboard() {
           <div className="flex items-center gap-1.5 bg-white/15 rounded-xl px-3 py-2 flex-shrink-0">
             <Flame size={16} className="text-orange-300" />
             <span className="font-bold text-sm">{studyStreak}</span>
-            <span className="text-white/70 text-xs hidden sm:block">streak</span>
+            <span className="text-white/80 text-xs font-medium">d streak</span>
           </div>
         </div>
 
@@ -336,7 +348,7 @@ export function Dashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard icon={BookOpen} label="Papers Available" value={visiblePapers.length} color="text-blue-600" bg="bg-blue-50" />
         <StatCard icon={Brain} label="Live Quizzes" value={visibleQuizzes.length} color="text-violet-600" bg="bg-violet-50" />
-        <StatCard icon={Star} label="Avg. Score" value={avgScore > 0 ? `${avgScore}%` : "—"} color="text-orange-600" bg="bg-orange-50" />
+        <StatCard icon={Star} label="Avg. Score" value={goalAttempts.length > 0 ? `${avgScore}%` : "0%"} color="text-orange-600" bg="bg-orange-50" />
         <StatCard icon={Flame} label="Study Streak" value={studyStreak} color="text-red-500" bg="bg-red-50" />
       </div>
 
@@ -378,9 +390,18 @@ export function Dashboard() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-40 flex flex-col items-center justify-center text-gray-400">
-              <TrendingUp size={32} className="mb-2 opacity-30" />
-              <p className="text-sm">Take at least two quizzes to see your trend</p>
+            <div className="h-44 flex flex-col items-center justify-center text-center p-4">
+              <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2.5">
+                <TrendingUp size={24} />
+              </div>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Track your progress curve</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 max-w-xs">Attempt quizzes to see your accuracy & score trends.</p>
+              <button
+                onClick={() => setView("quizzes")}
+                className="px-4 py-1.5 bg-[#1E3A8A] hover:bg-blue-900 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+              >
+                Start First Quiz →
+              </button>
             </div>
           )}
         </div>

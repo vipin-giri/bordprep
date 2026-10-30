@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, CheckCircle, X } from "lucide-react";
 import { useApp } from "./context/AppContext";
 import type { User as AppUser } from "./context/AppContext";
-import { loginAccount, registerAccount, setToken } from "../lib/api";
+import { loginAccount, registerAccount, setToken, forgotPassword, resetPassword } from "../lib/api";
 
 const LogoImage = new URL("../../imports/logo.png", import.meta.url).href;
 
 // ── Shared Input Field ────────────────────────────────────────────────────────
 const EMAIL_MAX = 80;
 const PASSWORD_MIN = 8;
-const PASSWORD_MAX = 16;
+const PASSWORD_MAX = 128;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SPECIAL_RE = /[^A-Za-z0-9]/;
 
@@ -23,7 +23,7 @@ function validateEmail(email: string) {
 
 function passwordChecks(password: string) {
   return [
-    { ok: password.length >= PASSWORD_MIN && password.length <= PASSWORD_MAX, label: "8–16 characters" },
+    { ok: password.length >= PASSWORD_MIN && password.length <= PASSWORD_MAX, label: "8–128 characters" },
     { ok: /[a-z]/.test(password), label: "1 lowercase letter" },
     { ok: /[A-Z]/.test(password), label: "1 uppercase letter" },
     { ok: SPECIAL_RE.test(password), label: "1 special character (!@#$...)" },
@@ -32,7 +32,7 @@ function passwordChecks(password: string) {
 
 function validatePassword(password: string) {
   if (passwordChecks(password).some((item) => !item.ok)) {
-    return "Password must be 8–16 characters with 1 uppercase, 1 lowercase, and 1 special character.";
+    return "Password must be 8–128 characters with 1 uppercase, 1 lowercase, and 1 special character.";
   }
   return "";
 }
@@ -101,6 +101,7 @@ function UnifiedLoginForm({ onSuccessStudent, onSuccessAdmin, onRegister }: { on
   const [fEmail, setFEmail]     = useState("");
   const [fLoading, setFLoading] = useState(false);
   const [fSent, setFSent]       = useState(false);
+  const [fError, setFError]     = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,11 +121,20 @@ function UnifiedLoginForm({ onSuccessStudent, onSuccessAdmin, onRegister }: { on
     }
   };
 
-  const handleForgot = (e: React.FormEvent) => {
+  const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fEmail) return;
     setFLoading(true);
-    setTimeout(() => { setFLoading(false); setAuthEmail(fEmail); setFSent(true); }, 800);
+    setFError("");
+    try {
+      await forgotPassword({ email: fEmail });
+      setAuthEmail(fEmail);
+      setFSent(true);
+    } catch (err: any) {
+      setFError(err.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setFLoading(false);
+    }
   };
 
   if (subView === "forgot") {
@@ -147,6 +157,7 @@ function UnifiedLoginForm({ onSuccessStudent, onSuccessAdmin, onRegister }: { on
         <p className="text-gray-500 text-xs mb-5">We'll send a 6-digit OTP to reset your password.</p>
         <form onSubmit={handleForgot}>
           <InputField label="Email address" type="email" value={fEmail} onChange={setFEmail} placeholder="you@email.com" icon={Mail} />
+          {fError && <p className="text-red-500 text-xs mb-3">{fError}</p>}
           <button type="submit" disabled={fLoading || !fEmail} className="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white py-3 rounded-xl transition-colors disabled:opacity-60 font-semibold text-sm">{fLoading ? "Sending OTP..." : "Send OTP"}</button>
         </form>
       </div>
@@ -345,6 +356,7 @@ export function RegisterPage() {
           ))}
         </ul>
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        {success && <p className="text-green-600 font-semibold text-sm mb-3">Password reset successful! Redirecting to login...</p>}
         <button type="submit" disabled={loading}
           className="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white py-3 rounded-xl transition-colors disabled:opacity-60 font-semibold">
           {loading ? "Creating account..." : "Create Account"}
@@ -433,11 +445,21 @@ export function ForgotPasswordPage() {
   const [sent, setSent]       = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError]     = useState("");
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    setTimeout(() => { setLoading(false); setAuthEmail(email); setSent(true); }, 800);
+    setError("");
+    try {
+      await forgotPassword({ email });
+      setAuthEmail(email);
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openLogin = () => { setLoginModalTab("student"); setView("landing"); setShowLoginModal(true); };
@@ -462,6 +484,7 @@ export function ForgotPasswordPage() {
     <AuthLayout title="Forgot password?" subtitle="We'll send a 6-digit OTP to your email">
       <form onSubmit={handleSubmit}>
         <InputField label="Email address" type="email" value={email} onChange={setEmail} placeholder="you@email.com" icon={Mail} />
+        {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
         <button type="submit" disabled={loading || !email}
           className="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white py-3 rounded-xl transition-colors disabled:opacity-60 font-semibold">
           {loading ? "Sending OTP..." : "Send OTP"}
@@ -492,19 +515,30 @@ export function ResetPasswordPage() {
     if (val && i < 5) document.getElementById(`rotp-${i + 1}`)?.focus();
   };
 
-  const handleReset = (e: React.FormEvent) => {
+  const [success, setSuccess] = useState(false);
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.join("").length < 6) { setError("Enter 6-digit OTP."); return; }
+    const otpCode = otp.join("");
+    if (otpCode.length < 6) { setError("Enter 6-digit OTP."); return; }
     const passwordError = validatePassword(password);
     if (passwordError) { setError(passwordError); return; }
     if (password !== confirm) { setError("Passwords do not match."); return; }
+    if (!authEmail) { setError("No email associated. Please restart forgot password."); return; }
     setLoading(true);
-    setTimeout(() => {
+    setError("");
+    try {
+      await resetPassword({ email: authEmail, otp: otpCode, password });
+      setSuccess(true);
+      setTimeout(() => {
+        setLoginModalTab("student");
+        setView("landing");
+        setShowLoginModal(true);
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || "Failed to reset password. Check your OTP.");
+    } finally {
       setLoading(false);
-      setLoginModalTab("student");
-      setView("landing");
-      setShowLoginModal(true);
-    }, 800);
+    }
   };
 
   return (

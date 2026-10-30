@@ -464,24 +464,39 @@ function toAttempt(row) {
   };
 }
 
+// Convert date to Indian Standard Time (IST, UTC+5:30) date key: YYYY-M-D
 function dayKey(date) {
+  if (!date) return "";
   const d = new Date(date);
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(d.getTime() + istOffset);
+  return `${istDate.getUTCFullYear()}-${istDate.getUTCMonth() + 1}-${istDate.getUTCDate()}`;
 }
 
 function computeStreakFromDates(dates) {
-  const days = new Set(dates.map(dayKey));
+  const days = new Set(dates.map(dayKey).filter(Boolean));
   if (!days.size) return 0;
-  const cursor = new Date();
-  cursor.setHours(0, 0, 0, 0);
-  if (!days.has(dayKey(cursor))) {
-    cursor.setDate(cursor.getDate() - 1);
-    if (!days.has(dayKey(cursor))) return 0;
+
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const now = new Date();
+  const cursor = new Date(now.getTime() + istOffset);
+
+  const todayKey = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}-${cursor.getUTCDate()}`;
+  if (!days.has(todayKey)) {
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    const yesterdayKey = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}-${cursor.getUTCDate()}`;
+    if (!days.has(yesterdayKey)) return 0;
   }
+
   let streak = 0;
-  while (days.has(dayKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
+  while (true) {
+    const key = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}-${cursor.getUTCDate()}`;
+    if (days.has(key)) {
+      streak += 1;
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    } else {
+      break;
+    }
   }
   return streak;
 }

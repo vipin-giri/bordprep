@@ -61,9 +61,9 @@ const MEDIUMS: { value: Medium; label: string; icon: LucideIcon; sub: string }[]
 ];
 
 const COMPETITIVE_EXAMS: { value: GoalCategory; label: string; icon: LucideIcon; sub: string; color: string; comingSoon?: boolean }[] = [
-  { value: "jee-mains",    label: "JEE Mains",    icon: Atom,        sub: "Engineering entrance (PCM)",            color: "#7C3AED", comingSoon: true },
+  { value: "jee-mains",    label: "JEE Mains",    icon: Atom,        sub: "Engineering entrance (PCM)",            color: "#7C3AED" },
   { value: "jee-advanced", label: "JEE Advanced", icon: Trophy,      sub: "IIT entrance (after JEE Mains)",        color: "#4F46E5", comingSoon: true },
-  { value: "neet",         label: "NEET UG",      icon: Stethoscope, sub: "Medical entrance (PCB)",               color: "#16A34A", comingSoon: true },
+  { value: "neet",         label: "NEET UG",      icon: Stethoscope, sub: "Medical entrance (PCB)",               color: "#16A34A" },
   { value: "mht-cet-pcb",  label: "MHT-CET PCB",  icon: Microscope,  sub: "Maharashtra CET — Medical",            color: "#0891B2" },
   { value: "mht-cet-pcm",  label: "MHT-CET PCM",  icon: Calculator,  sub: "Maharashtra CET — Engineering",        color: "#0284C7" },
 ];

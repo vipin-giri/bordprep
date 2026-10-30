@@ -104,6 +104,27 @@ export function updateMe(body: Partial<AuthUser>) {
   });
 }
 
+export function forgotPassword(body: { email: string }) {
+  return api<{ message: string; devOtp?: string }>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function verifyOtp(body: { email: string; otp: string }) {
+  return api<{ message: string }>("/api/auth/verify-otp", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function resetPassword(body: { email: string; otp: string; password: string }) {
+  return api<{ message: string }>("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export type AdminDashboardStats = {
   totalStudents: number;
   totalPapers: number;

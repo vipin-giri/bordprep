@@ -46,6 +46,79 @@ function daysUntil(iso?: string) {
   return Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86400000));
 }
 
+// ── 90-Day Activity Heatmap ──────────────────────────────────────────
+function ActivityHeatmap({ dates }: { dates: string[] }) {
+  const { days, activeDays } = useMemo(() => {
+    const counts = new Map<string, number>();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    
+    dates.forEach(d => {
+      if (!d) return;
+      const dateObj = new Date(new Date(d).getTime() + istOffset);
+      const key = `${dateObj.getUTCFullYear()}-${String(dateObj.getUTCMonth() + 1).padStart(2, '0')}-${String(dateObj.getUTCDate()).padStart(2, '0')}`;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+
+    const result = [];
+    const now = new Date(Date.now() + istOffset);
+    let active = 0;
+
+    for (let i = 83; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+      const count = counts.get(key) || 0;
+      if (count > 0) active++;
+      result.push({
+        date: key,
+        count,
+        label: d.toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+      });
+    }
+    return { days: result, activeDays: active };
+  }, [dates]);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span className="text-gray-500 font-medium">Activity in the last 12 weeks</span>
+        <span className="font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full text-[11px]">
+          {activeDays} active day{activeDays !== 1 ? "s" : ""}
+        </span>
+      </div>
+      <div className="overflow-x-auto pb-2 -mx-1 px-1">
+        <div className="grid grid-rows-7 grid-flow-col gap-1.5 w-max">
+          {days.map((d) => {
+            let bg = "bg-slate-100 dark:bg-slate-800";
+            if (d.count === 1) bg = "bg-emerald-300 dark:bg-emerald-700";
+            else if (d.count === 2) bg = "bg-emerald-400 dark:bg-emerald-600";
+            else if (d.count >= 3) bg = "bg-emerald-600 dark:bg-emerald-500";
+
+            return (
+              <div
+                key={d.date}
+                className={`w-3.5 h-3.5 rounded-sm ${bg} transition-transform hover:scale-125 cursor-pointer`}
+                title={`${d.label}: ${d.count} quiz attempt${d.count !== 1 ? 's' : ''}`}
+              />
+            );
+          })}
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-[11px] text-gray-400">
+        <span>12 weeks ago</span>
+        <div className="flex items-center gap-1">
+          <span>Less</span>
+          <span className="w-2.5 h-2.5 rounded-xs bg-slate-100 dark:bg-slate-800" />
+          <span className="w-2.5 h-2.5 rounded-xs bg-emerald-300 dark:bg-emerald-700" />
+          <span className="w-2.5 h-2.5 rounded-xs bg-emerald-400 dark:bg-emerald-600" />
+          <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-500" />
+          <span>More</span>
+        </div>
+        <span>Today</span>
+      </div>
+    </div>
+  );
+}
+
 export function Profile() {
   const {
     user, setUser, setView, currentGoal, setCurrentGoal, removeGoal,
@@ -107,13 +180,13 @@ export function Profile() {
     void updateMe({ currentGoalId: goal.id }).catch((err) => console.warn("Could not switch goal", err));
   };
 
-  const handleRemoveGoal = (goalId: string) => {
-    if (!user || (user.goals?.length ?? 0) < 2) return;
-    if (!window.confirm("Remove this exam goal from your profile?")) return;
-    const remaining = user.goals.filter((g) => g.id !== goalId);
-    const currentGoalId = user.currentGoalId === goalId ? remaining[0].id : user.currentGoalId;
-    removeGoal(goalId);
+  const confirmRemoveGoal = () => {
+    if (!goalToRemove || !user || (user.goals?.length ?? 0) < 2) return;
+    const remaining = user.goals.filter((g) => g.id !== goalToRemove);
+    const currentGoalId = user.currentGoalId === goalToRemove ? remaining[0].id : user.currentGoalId;
+    removeGoal(goalToRemove);
     void updateMe({ goals: remaining, currentGoalId }).catch((err) => console.warn("Could not update goals", err));
+    setGoalToRemove(null);
   };
 
   const logout = () => {
@@ -241,8 +314,8 @@ export function Profile() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { icon: Brain, label: "Quizzes taken", value: goalAttempts.length, color: "text-violet-600", bg: "bg-violet-50" },
-              { icon: CheckCircle, label: "Average score", value: avgScore > 0 ? `${avgScore}%` : "—", color: "text-blue-600", bg: "bg-blue-50" },
-              { icon: Target, label: "Best score", value: bestScore > 0 ? `${bestScore}%` : "—", color: "text-emerald-600", bg: "bg-emerald-50" },
+              { icon: CheckCircle, label: "Average score", value: goalAttempts.length > 0 ? `${avgScore}%` : "0%", color: "text-blue-600", bg: "bg-blue-50" },
+              { icon: Target, label: "Best score", value: goalAttempts.length > 0 ? `${bestScore}%` : "0%", color: "text-emerald-600", bg: "bg-emerald-50" },
               { icon: Flame, label: "Day streak", value: user?.streak ?? 0, color: "text-orange-600", bg: "bg-orange-50" },
               { icon: FileText, label: "Papers available", value: studentPapers.length, color: "text-sky-600", bg: "bg-sky-50" },
               { icon: Bookmark, label: "Saved items", value: bookmarks.length, color: "text-amber-600", bg: "bg-amber-50" },
@@ -341,7 +414,7 @@ export function Profile() {
                       )}
                       {(user.goals.length > 1) && (
                         <button
-                          onClick={() => handleRemoveGoal(goal.id)}
+                          onClick={() => setGoalToRemove(goal.id)}
                           className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                           title="Remove goal"
                         >
@@ -400,6 +473,17 @@ export function Profile() {
         )}
       </div>
 
+      {/* ── Study Heatmap ── */}
+      <div className="rounded-2xl p-5 sm:p-6" style={cardStyle}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-[#1E3A8A] font-['Poppins'] flex items-center gap-2">
+            <Flame size={16} className="text-orange-500" /> Study Activity Heatmap
+          </h3>
+          <span className="text-xs text-gray-500">{completedAttempts.length} Total Sessions</span>
+        </div>
+        <ActivityHeatmap dates={completedAttempts.map((a) => a.submittedAt)} />
+      </div>
+
       {/* ── Account ── */}
       <div className="rounded-2xl p-5 sm:p-6" style={cardStyle}>
         <h3 className="font-semibold text-gray-800 font-['Poppins'] mb-1">Account</h3>
@@ -413,6 +497,26 @@ export function Profile() {
           <LogOut size={15} /> Logout
         </button>
       </div>
+      {/* ── Remove Goal Confirmation Dialog ── */}
+      <AlertDialog open={!!goalToRemove} onOpenChange={(open) => !open && setGoalToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Exam Goal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this exam goal from your preparation profile? You can always add it again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setGoalToRemove(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemoveGoal}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium"
+            >
+              Remove Goal
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

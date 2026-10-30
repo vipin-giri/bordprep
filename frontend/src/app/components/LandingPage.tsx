@@ -24,7 +24,7 @@ function formatCount(n: number) {
 }
 
 
-const BGImage = new URL("../../imports/BG.jpg", import.meta.url).href;
+const BGImage = new URL("../../imports/BG.webp", import.meta.url).href;
 const DIGIImage = new URL("../../imports/DIGI.jpg", import.meta.url).href;
 const STDImage = new URL("../../imports/STD.jpg", import.meta.url).href;
 const STUPREPImage = new URL("../../imports/STUDY_PREP.jpg", import.meta.url).href;
@@ -282,7 +282,7 @@ export function LandingPage() {
           </div>
 
           <h1
-            className="text-sm min-[360px]:text-base min-[400px]:text-xl sm:text-3xl md:text-5xl mb-3 sm:mb-4 leading-snug sm:leading-tight drop-shadow-md font-bold text-white max-w-4xl mx-auto px-1 sm:px-2"
+            className="text-2xl min-[360px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-4 sm:mb-6 leading-tight drop-shadow-md font-extrabold text-white max-w-4xl mx-auto px-2 tracking-tight"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             <span className="whitespace-nowrap sm:whitespace-normal block">Don't Let the Exam Surprise You.</span>

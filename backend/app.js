@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { initSchema } from "./db.js";
-import { login, me, register, requireAuth, seedAdmin, updateMe } from "./auth.js";
+import { login, me, register, requireAuth, seedAdmin, updateMe, forgotPassword, verifyOtp, resetPassword } from "./auth.js";
 import { deleteUser, getAnalytics, getDashboard, listUsers, requireAdmin, setUserBlocked, updateUser } from "./admin.js";
 import {
   createPaper,
@@ -75,6 +75,27 @@ function corsOptions() {
 
 app.use(cors(corsOptions()));
 app.use(express.json({ limit: "1mb" }));
+// Simple in-memory rate limiter for auth routes
+const authRateLimits = new Map();
+function authRateLimit(req, res, next) {
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.ip || "unknown";
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 min
+  const maxRequests = 10;
+
+  const record = authRateLimits.get(ip) || { count: 0, resetAt: now + windowMs };
+  if (now > record.resetAt) {
+    record.count = 0;
+    record.resetAt = now + windowMs;
+  }
+  record.count++;
+  authRateLimits.set(ip, record);
+
+  if (record.count > maxRequests) {
+    return res.status(429).json({ error: "Too many attempts. Please try again in 15 minutes." });
+  }
+  next();
+}
 
 let readyPromise = null;
 
@@ -107,10 +128,13 @@ app.get("/api/health", async (_req, res) => {
   }
 });
 
-app.post("/api/auth/register", register);
-app.post("/api/auth/login", login);
+app.post("/api/auth/register", authRateLimit, register);
+app.post("/api/auth/login", authRateLimit, login);
 app.get("/api/auth/me", requireAuth, me);
 app.patch("/api/auth/me", requireAuth, updateMe);
+app.post("/api/auth/forgot-password", authRateLimit, forgotPassword);
+app.post("/api/auth/verify-otp", authRateLimit, verifyOtp);
+app.post("/api/auth/reset-password", authRateLimit, resetPassword);
 
 app.get("/api/admin/dashboard", requireAdmin, getDashboard);
 app.get("/api/admin/analytics", requireAdmin, getAnalytics);

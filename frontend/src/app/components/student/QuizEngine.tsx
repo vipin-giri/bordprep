@@ -7,6 +7,17 @@ import {
 import { useApp } from "../context/AppContext";
 import type { QuizAttempt } from "../data/mockData";
 import { startQuiz, submitQuizAttempt, type StudentQuiz, type StudentQuizQuestion } from "../../lib/api";
+import { MathText } from "../ui/MathText";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 type SessionQuiz = StudentQuiz & { questions: StudentQuizQuestion[] };
 
@@ -532,7 +543,7 @@ export function QuizAttempt() {
               {isFlagged && <span className="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full flex items-center gap-1"><Flag size={11} /> Flagged</span>}
               {isBookmarkedQuestion && <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1"><Bookmark size={11} /> Saved</span>}
             </div>
-            <p className="text-gray-800 leading-relaxed text-[15px]">{q.text}</p>
+            <div className="text-gray-800 leading-relaxed text-[15px]"><MathText text={q.text} /></div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
@@ -566,7 +577,7 @@ export function QuizAttempt() {
               <span className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm flex-shrink-0 font-bold font-['Poppins'] ${selectedOpt === opt || (isPractice && hasAnswered && opt === q.correctOption) ? "border-current" : "border-gray-300 text-gray-400"}`}>
                 {opt}
               </span>
-              <span className="text-sm leading-snug flex-1">{optionTexts[i]}</span>
+              <span className="text-sm leading-snug flex-1"><MathText text={optionTexts[i]} /></span>
               {isPractice && hasAnswered && opt === q.correctOption && <CheckCircle size={16} className="ml-auto text-green-500 flex-shrink-0" />}
               {isPractice && hasAnswered && opt === selectedOpt && !isCorrect && <XCircle size={16} className="ml-auto text-red-500 flex-shrink-0" />}
             </button>
@@ -585,7 +596,7 @@ export function QuizAttempt() {
                 {!isCorrect && <span className="text-xs text-red-600 ml-1">Correct: {q.correctOption}</span>}
               </div>
             </div>
-            <p className="text-xs text-gray-600 leading-relaxed">{q.explanation}</p>
+            <div className="text-xs text-gray-600 leading-relaxed"><MathText text={q.explanation} /></div>
           </div>
         )}
       </div>
@@ -933,7 +944,7 @@ export function QuizReview() {
                 )}
               </div>
 
-              <p className="text-gray-800 text-sm mb-3 leading-relaxed">{q.text}</p>
+              <div className="text-gray-800 text-sm mb-3 leading-relaxed"><MathText text={q.text} /></div>
 
               {/* Options */}
               <div className="space-y-1.5 mb-3">
@@ -951,7 +962,7 @@ export function QuizReview() {
                     <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 border font-bold font-['Poppins']" style={{ borderColor: "currentColor" }}>
                       {opt}
                     </span>
-                    <span className="flex-1">{optionTexts[j]}</span>
+                    <span className="flex-1"><MathText text={optionTexts[j]} /></span>
                     {opt === correct && <CheckCircle size={13} className="ml-auto text-green-500 flex-shrink-0" />}
                     {opt === selected && !isRight && <XCircle size={13} className="ml-auto text-red-500 flex-shrink-0" />}
                   </div>
@@ -966,7 +977,7 @@ export function QuizReview() {
                   </span>
                   <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">English & Marathi Step-by-Step</span>
                 </div>
-                <p className="text-gray-700 leading-relaxed">{q.explanation}</p>
+                <div className="text-gray-700 leading-relaxed"><MathText text={q.explanation} /></div>
                 <div className="pt-1.5 border-t border-blue-100/80 text-[11px] text-gray-500 italic">
                   <Lightbulb size={13} className="inline text-amber-500 mr-1" /> <span className="font-semibold text-gray-700">Exam Tip:</span> Standard Maharashtra board questions test formula application directly. Verify units before final calculation.
                 </div>

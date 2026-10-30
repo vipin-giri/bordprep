@@ -6,7 +6,7 @@ import { hashPassword, verifyPassword } from "./password.js";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_MAX = 80;
 const PASSWORD_MIN = 8;
-const PASSWORD_MAX = 16;
+const PASSWORD_MAX = 128;
 const SPECIAL_RE = /[^A-Za-z0-9]/;
 
 function validateEmail(email) {
@@ -18,7 +18,7 @@ function validateEmail(email) {
 
 function validatePassword(password) {
   if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
-    return "Password must be 8–16 characters.";
+    return "Password must be 8–128 characters.";
   }
   if (!/[a-z]/.test(password)) return "Password must include 1 lowercase letter.";
   if (!/[A-Z]/.test(password)) return "Password must include 1 uppercase letter.";
@@ -200,7 +200,11 @@ export async function updateMe(req, res) {
 
 export async function seedAdmin() {
   const email = String(process.env.ADMIN_EMAIL ?? "admin@pariksha.in").trim().toLowerCase();
-  const password = String(process.env.ADMIN_PASSWORD ?? "admin123");
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    console.warn("⚠️  ADMIN_PASSWORD not set — skipping admin seed to prevent insecure default.");
+    return;
+  }
   const [rows] = await pool.query("SELECT id FROM users WHERE email = ? LIMIT 1", [email]);
   if (rows.length > 0) return;
 
@@ -212,4 +216,85 @@ export async function seedAdmin() {
     [id, "System Admin", email, passwordHash, JSON.stringify([])],
   );
   console.log(`Seeded admin account: ${email}`);
+}
+
+// ---------------------------------------------------------------------------
+// Forgot-password / OTP / Reset-password
+// ---------------------------------------------------------------------------
+
+// In-memory OTP store (for serverless, use DB in production)
+const otpStore = new Map(); // email -> { otp, expires, verified? }
+
+export async function forgotPassword(req, res) {
+  try {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: "Email is required." });
+
+    const [rows] = await pool.query("SELECT id FROM users WHERE email = ? LIMIT 1", [email]);
+    // Always return success to prevent email enumeration
+    if (rows.length === 0) {
+      return res.json({ message: "If that email exists, an OTP has been sent." });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(email, { otp, expires: Date.now() + 10 * 60 * 1000 }); // 10 min
+
+    // In production, send email here. For now, log it (dev mode).
+    console.log(`[OTP] ${email}: ${otp}`);
+
+    return res.json({
+      message: "If that email exists, an OTP has been sent.",
+      // REMOVE this in production — only for dev/testing:
+      ...(process.env.NODE_ENV !== "production" ? { devOtp: otp } : {}),
+    });
+  } catch (err) {
+    console.error("forgotPassword failed:", err);
+    return res.status(500).json({ error: "Could not process request." });
+  }
+}
+
+export async function verifyOtp(req, res) {
+  try {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const otp = String(req.body?.otp ?? "").trim();
+    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required." });
+
+    const stored = otpStore.get(email);
+    if (!stored || stored.otp !== otp || Date.now() > stored.expires) {
+      return res.status(400).json({ error: "Invalid or expired OTP. Please try again." });
+    }
+
+    // Mark OTP as verified (keep it for reset step)
+    otpStore.set(email, { ...stored, verified: true });
+    return res.json({ message: "OTP verified successfully." });
+  } catch (err) {
+    console.error("verifyOtp failed:", err);
+    return res.status(500).json({ error: "Could not verify OTP." });
+  }
+}
+
+export async function resetPassword(req, res) {
+  try {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const otp = String(req.body?.otp ?? "").trim();
+    const password = String(req.body?.password ?? "");
+    if (!email || !otp || !password) return res.status(400).json({ error: "All fields are required." });
+
+    const stored = otpStore.get(email);
+    if (!stored || !stored.verified || stored.otp !== otp || Date.now() > stored.expires) {
+      return res.status(400).json({ error: "Invalid or expired session. Please restart password reset." });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) return res.status(400).json({ error: passwordError });
+
+    const passwordHash = await hashPassword(password);
+    await pool.query("UPDATE users SET password_hash = ? WHERE email = ?", [passwordHash, email]);
+    otpStore.delete(email);
+
+    return res.json({ message: "Password reset successfully. Please log in." });
+  } catch (err) {
+    console.error("resetPassword failed:", err);
+    return res.status(500).json({ error: "Could not reset password." });
+  }
 }

@@ -40,6 +40,14 @@ const navItems: { icon: any; label: string; view: View | "explore" }[] = [
   { icon: User,            label: "Profile",          view: "profile"   },
 ];
 
+const bottomNavItems = [
+  { icon: LayoutDashboard, label: "Dashboard", view: "dashboard" as const },
+  { icon: FileText,        label: "Papers",    view: "papers" as const },
+  { icon: Brain,           label: "Quizzes",   view: "quizzes" as const },
+  { icon: Bookmark,        label: "Saved",     view: "bookmarks" as const },
+  { icon: User,            label: "Profile",   view: "profile" as const },
+];
+
 // ── Notification Bell ─────────────────────────────────────────────────────────
 
 function NotifBell() {
@@ -278,7 +286,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 lg:ml-60 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
 
         {/* ── Top Header ── */}
-        <header className="px-4 py-3 flex items-center gap-3 sticky top-0 z-20 h-14" style={{ backgroundColor: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(30,58,138,0.08)", boxShadow: "0 1px 16px rgba(30,58,138,0.07)" }}>
+        <header className="px-4 py-3 flex items-center gap-3 sticky top-0 z-20 h-14 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-blue-900/10 dark:border-slate-800 shadow-sm">
 
           {/* Mobile: Logo */}
           <div className="lg:hidden flex items-center gap-2">
@@ -326,34 +334,28 @@ export function StudentLayout({ children }: { children: ReactNode }) {
 
         {/* ── Mobile Bottom Navigation ── */}
         <nav
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-1"
-          style={{ height: "64px", paddingBottom: "env(safe-area-inset-bottom, 0px)", backgroundColor: "rgba(255,255,255,0.92)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid rgba(30,58,138,0.08)", boxShadow: "0 -1px 16px rgba(30,58,138,0.07)" }}
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-1px_16px_rgba(0,0,0,0.06)]"
+          style={{ height: "64px", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           role="navigation"
           aria-label="Main navigation"
         >
-          {navItems.map(item => {
-            const isActive = item.view === "explore" ? searchDrawerOpen : view === item.view;
+          {bottomNavItems.map(item => {
+            const isActive = view === item.view;
             return (
               <button
                 key={item.label}
-                onClick={() => {
-                  if (item.view === "explore") {
-                    setSearchDrawerOpen(true);
-                  } else {
-                    setView(item.view as View);
-                  }
-                }}
+                onClick={() => setView(item.view)}
                 aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
                 className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 rounded-xl mx-0.5 transition-all duration-150 min-w-[44px] cursor-pointer ${
                   isActive
-                    ? "text-[#1E3A8A] bg-[#1E3A8A]/5 border-t-2 border-t-[#1E3A8A]"
-                    : "text-gray-400 hover:text-gray-600"
+                    ? "text-[#1E3A8A] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 border-t-2 border-t-[#1E3A8A] dark:border-t-blue-400"
+                    : "text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200"
                 } -mt-px`}
               >
                 <item.icon size={20} />
-                <span className={`text-[10px] mt-0.5 font-medium font-['Poppins'] ${isActive ? "font-semibold text-[#1E3A8A]" : ""}`}>
-                  {item.label.split(" ")[0]}
+                <span className={`text-[10px] mt-0.5 font-medium font-['Poppins'] ${isActive ? "font-semibold text-[#1E3A8A] dark:text-blue-400" : ""}`}>
+                  {item.label}
                 </span>
               </button>
             );

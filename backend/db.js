@@ -241,6 +241,15 @@ export async function initSchema() {
       INDEX idx_announcements_active (is_active)
     )
   `);
+
+  // Data normalization: Fix 'Mathmetics' typo in database (BUG-015)
+  try {
+    await pool.query("UPDATE subjects SET name = 'Mathematics' WHERE name = 'Mathmetics'");
+    await pool.query("UPDATE papers SET subject = 'Mathematics' WHERE subject = 'Mathmetics'");
+    await pool.query("UPDATE quizzes SET subject = 'Mathematics' WHERE subject = 'Mathmetics'");
+  } catch (err) {
+    console.warn("Subject name cleanup skipped:", err.message);
+  }
 }
 
 export function toPublicUser(row) {
