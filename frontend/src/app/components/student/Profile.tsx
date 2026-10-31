@@ -1,4 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import {
   User, Mail, Phone, Save, LogOut, Flame, Brain,
   FileText, CheckCircle, Trash2, Target, Calendar, BookOpen,
@@ -87,7 +97,7 @@ function ActivityHeatmap({ dates }: { dates: string[] }) {
       </div>
       <div className="overflow-x-auto pb-2 -mx-1 px-1">
         <div className="grid grid-rows-7 grid-flow-col gap-1.5 w-max">
-          {days.map((d) => {
+          {days.map((d: any) => {
             let bg = "bg-slate-100 dark:bg-slate-800";
             if (d.count === 1) bg = "bg-emerald-300 dark:bg-emerald-700";
             else if (d.count === 2) bg = "bg-emerald-400 dark:bg-emerald-600";
@@ -131,6 +141,7 @@ export function Profile() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [goalToRemove, setGoalToRemove] = useState<string | null>(null);
 
   const cat = currentGoal?.category;
   const goalAttempts = completedAttempts.filter((a) => !cat || a.goalCategory === cat);
@@ -498,7 +509,7 @@ export function Profile() {
         </button>
       </div>
       {/* ── Remove Goal Confirmation Dialog ── */}
-      <AlertDialog open={!!goalToRemove} onOpenChange={(open) => !open && setGoalToRemove(null)}>
+      <AlertDialog open={!!goalToRemove} onOpenChange={(open: boolean) => !open && setGoalToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Exam Goal?</AlertDialogTitle>

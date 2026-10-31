@@ -230,6 +230,7 @@ export type AdminPaper = {
   goalCategory: string;
   fileName: string | null;
   hasFile: boolean;
+  solutionPriceOverride?: number | null;
   analytics: { views: number; downloads: number; bookmarks: number };
   createdAt: string;
 };
@@ -606,4 +607,62 @@ export function deleteAdminAnnouncement(id: string) {
 
 export function fetchStudentAnnouncements() {
   return api<{ announcements: AppAnnouncement[] }>("/api/announcements");
+}
+
+
+// ── Solution API ──────────────────────────────────────────────────────────────
+
+export type SolutionMeta = {
+  hasSolution: boolean;
+  solutionId?: string;
+  pricePaise?: number;
+  priceRupees?: number;
+  purchased?: boolean;
+  razorpayKeyId?: string | null;
+  demoMode?: boolean;
+};
+
+export type SolutionOrder = {
+  orderId: string;
+  pricePaise: number;
+  priceRupees: number;
+  purchaseId: string;
+  demoMode: boolean;
+};
+
+export function fetchSolutionMeta(paperId: string) {
+  return api<SolutionMeta>(`/api/papers/${paperId}/solution/meta`);
+}
+
+export function createSolutionOrder(paperId: string) {
+  return api<SolutionOrder>(`/api/papers/${paperId}/solution/order`, { method: "POST" });
+}
+
+export function verifySolutionPayment(paperId: string, body: {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature?: string;
+  demo?: boolean;
+}) {
+  return api<{ success: boolean; message?: string }>(`/api/papers/${paperId}/solution/verify`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function studentSolutionFileUrl(paperId: string) {
+  return `${API_BASE}/api/papers/${paperId}/solution/file`;
+}
+
+export function uploadAdminSolution(paperId: string, form: FormData) {
+  return api<{ solution: any }>("/api/admin/papers/" + paperId + "/solution", {
+    method: "POST",
+    body: form,
+  });
+}
+
+export function deleteAdminSolution(paperId: string) {
+  return api<{ ok: boolean }>("/api/admin/papers/" + paperId + "/solution", {
+    method: "DELETE",
+  });
 }

@@ -589,7 +589,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                 </label>
                 <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                   {matchingPapers.slice(0, 5).map(p => {
-                    const typeCfg = PAPER_TYPE_CONFIG[p.type];
+                    const typeCfg = (PAPER_TYPE_CONFIG as any)[p.type];
                     return (
                       <div
                         key={p.id}

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import React, { useState } from "react";
 import { useApp } from "./context/AppContext";
 import type { User } from "./context/AppContext";
@@ -12,6 +13,22 @@ import {
 import { GoalIcon, SubjectIcon } from "./shared/GoalIcons";
 
 // ─────────────────────────────────────────────────────────────────────────────
+export function isSubjectMatchStream(subject: (typeof subjects)[0], selectedStream: Stream | null): boolean {
+  if (subject.standard !== "11" && subject.standard !== "12") {
+    return true;
+  }
+  if (!selectedStream) {
+    return true;
+  }
+  if (subject.streams && subject.streams.length > 0) {
+    return subject.streams.includes(selectedStream);
+  }
+  if (subject.stream === "general") return true;
+  if (subject.stream === selectedStream) return true;
+  if (selectedStream === "pcbm" && (subject.stream === "pcb" || subject.stream === "pcm")) return true;
+  return false;
+}
+
 // Step types
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -94,7 +111,7 @@ function getSteps(state: OnboardingState): string[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function OnboardingFlow() {
-  const { setView, user, setUser, selectedPaperId, selectedQuizId } = useApp();
+  const { setView, user, setUser, selectedPaperId, selectedQuizId, setShowLoginModal } = useApp();
   const [step, setStep] = useState(0);
   const [state, setState] = useState<OnboardingState>({
     goalType: null,
@@ -152,7 +169,7 @@ export default function OnboardingFlow() {
 
         const subjectIds = state.selectedSubjectIds.filter(sid => {
           const sub = subjects.find(s => s.id === sid);
-          return sub && sub.goalCategory === (`board-${std}` as GoalCategory);
+          return sub && sub.goalCategory === (`board-${std}` as GoalCategory) && isSubjectMatchStream(sub, state.boardStream);
         });
 
         goals.push({
@@ -224,6 +241,12 @@ export default function OnboardingFlow() {
       currentGoalId: updatedUser.currentGoalId,
       medium: updatedUser.medium,
     }).catch((err) => console.warn("Could not save onboarding to server", err));
+
+    toast.success("Registration Successful! 🎉", {
+      description: "Welcome to ParikshaCrack! Your personalized syllabus and study material are ready.",
+      duration: 5000,
+    });
+
     if (selectedPaperId) {
       setView("paper-detail");
     } else if (selectedQuizId) {
@@ -417,21 +440,22 @@ function StepStandard({ state, setState }: { state: OnboardingState; setState: R
     ? STANDARDS.filter(s => s.value === "11" || s.value === "12")
     : STANDARDS;
 
-  const toggle = (std: Standard) => {
+  const selectStandard = (std: Standard) => {
     setState(prev => {
-      const already = prev.boardStandards.includes(std);
-      const updated = already ? prev.boardStandards.filter(s => s !== std) : [...prev.boardStandards, std];
-      return { ...prev, boardStandards: updated };
+      const needsStream = std === "11" || std === "12";
+      return {
+        ...prev,
+        boardStandards: [std],
+        boardStream: needsStream ? prev.boardStream : null,
+      };
     });
   };
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 font-['Poppins'] mb-1">Which class(es) are you in?</h2>
+      <h2 className="text-xl font-bold text-gray-900 font-['Poppins'] mb-1">Which class are you in?</h2>
       <p className="text-sm text-gray-500 mb-6">
-        {state.goalType === "both"
-          ? "For Both, choose Class 11 and/or Class 12 only."
-          : "Select all that apply. You can prepare for multiple classes."}
+        Select your current class to personalize your syllabus.
       </p>
       <div className="flex flex-col gap-3">
         {availableStandards.map(std => {
@@ -439,7 +463,7 @@ function StepStandard({ state, setState }: { state: OnboardingState; setState: R
           return (
             <button
               key={std.value}
-              onClick={() => toggle(std.value)}
+              onClick={() => selectStandard(std.value)}
               className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-150 min-h-[68px] ${
                 isSelected
                   ? "border-[#1E3A8A] bg-[#1E3A8A]/5"
@@ -473,6 +497,21 @@ function StepStandard({ state, setState }: { state: OnboardingState; setState: R
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StepStream({ state, setState }: { state: OnboardingState; setState: React.Dispatch<React.SetStateAction<OnboardingState>> }) {
+  const handleSelectStream = (strValue: Stream) => {
+    setState(prev => ({
+      ...prev,
+      boardStream: strValue,
+      selectedSubjectIds: prev.selectedSubjectIds.filter(id => {
+        const sub = subjects.find(s => s.id === id);
+        if (!sub) return false;
+        if (sub.standard === "11" || sub.standard === "12") {
+          return isSubjectMatchStream(sub, strValue);
+        }
+        return true;
+      }),
+    }));
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold text-gray-900 font-['Poppins'] mb-1">Which stream are you in?</h2>
@@ -483,7 +522,7 @@ function StepStream({ state, setState }: { state: OnboardingState; setState: Rea
           return (
             <button
               key={str.value}
-              onClick={() => setState(prev => ({ ...prev, boardStream: str.value }))}
+              onClick={() => handleSelectStream(str.value)}
               className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-150 min-h-[68px] ${
                 isSelected
                   ? "border-[#1E3A8A] bg-[#1E3A8A]/5"
@@ -682,7 +721,10 @@ function StepSubjects({ state, setState }: { state: OnboardingState; setState: R
     state.competitiveExams.forEach(cat => relevantCategories.push(cat));
   }
 
-  const relevantSubjects = subjects.filter(s => relevantCategories.includes(s.goalCategory));
+  const relevantSubjects = subjects.filter(s => {
+    if (!relevantCategories.includes(s.goalCategory)) return false;
+    return isSubjectMatchStream(s, state.boardStream);
+  });
 
   // Group by goalCategory
   const grouped: Record<string, typeof relevantSubjects> = {};

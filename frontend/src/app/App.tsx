@@ -19,6 +19,7 @@ import { AdminUsers } from "./components/admin/AdminUsers";
 import { AdminAnnouncements } from "./components/admin/AdminAnnouncements";
 import { AdminSubjects } from "./components/admin/AdminSubjects";
 import { AdminAnalytics } from "./components/admin/AdminAnalytics";
+import { Toaster } from "sonner";
 
 const ADMIN_VIEWS = [
   "admin-dashboard", "admin-papers", "admin-paper-upload",
@@ -94,6 +95,7 @@ function AppContent() {
 export default function App() {
   return (
     <AppProvider>
+      <Toaster position="top-center" richColors closeButton />
       {/* Global Login Modal — renders on top of any page, handles both Student & Admin */}
       <LoginModal />
       <ErrorBoundary>

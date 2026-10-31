@@ -3,7 +3,7 @@ import {
   FlaskConical, Stethoscope, Atom, GraduationCap, School, BookMarked, Calculator, Microscope,
   Gift, Heart, Search, Eye, Download, X, Clock, Award, ChevronDown,
   LayoutGrid, List, RotateCcw, Sparkles, ArrowDownCircle,
-  Languages, Pencil, Check, TrendingUp, Lightbulb, UserPlus,
+  Languages, Pencil, Check, TrendingUp, Lightbulb, LogIn,
   type LucideIcon
 } from "lucide-react";
 
@@ -98,7 +98,7 @@ const freeFeatures = [
 ];
 
 export function LandingPage() {
-  const { setView, setShowLoginModal, setLoginModalTab } = useApp();
+  const { setView, setShowLoginModal } = useApp();
   const images = [BGImage, DIGIImage, STDImage, STUPREPImage, STUDYImage];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [papers, setPapers] = useState<StudentPaper[]>([]);
@@ -256,11 +256,11 @@ export function LandingPage() {
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="hero-pill-dock">
               {[
-                { icon: School,        label: "SSC",     color: "text-orange-400", glow: "rgba(249,115,22,0.4)",  shadow: "rgba(249,115,22,0.35)" },
-                { icon: GraduationCap, label: "HSC",     color: "text-blue-400",   glow: "rgba(59,130,246,0.4)",  shadow: "rgba(59,130,246,0.35)" },
-                { icon: FlaskConical,  label: "MHT-CET", color: "text-cyan-400",   glow: "rgba(6,182,212,0.4)",  shadow: "rgba(6,182,212,0.35)"  },
-                { icon: Atom,          label: "JEE",     color: "text-purple-400", glow: "rgba(139,92,246,0.4)", shadow: "rgba(139,92,246,0.35)" },
-                { icon: Stethoscope,   label: "NEET",    color: "text-emerald-400",glow: "rgba(16,185,129,0.4)", shadow: "rgba(16,185,129,0.35)" },
+                { icon: School, label: "SSC", color: "text-orange-400", glow: "rgba(249,115,22,0.4)", shadow: "rgba(249,115,22,0.35)" },
+                { icon: GraduationCap, label: "HSC", color: "text-blue-400", glow: "rgba(59,130,246,0.4)", shadow: "rgba(59,130,246,0.35)" },
+                { icon: FlaskConical, label: "MHT-CET", color: "text-cyan-400", glow: "rgba(6,182,212,0.4)", shadow: "rgba(6,182,212,0.35)" },
+                { icon: Atom, label: "JEE", color: "text-purple-400", glow: "rgba(139,92,246,0.4)", shadow: "rgba(139,92,246,0.35)" },
+                { icon: Stethoscope, label: "NEET", color: "text-emerald-400", glow: "rgba(16,185,129,0.4)", shadow: "rgba(16,185,129,0.35)" },
               ].map(({ icon: Icon, label, color, glow, shadow }) => (
                 <button
                   key={label}
@@ -282,10 +282,10 @@ export function LandingPage() {
           </div>
 
           <h1
-            className="text-2xl min-[360px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-4 sm:mb-6 leading-tight drop-shadow-md font-extrabold text-white max-w-4xl mx-auto px-2 tracking-tight"
+            className="text-2xl min-[240px]:text-1xl sm:text-2xl md:text-3xl lg:text-6xl mb-2 sm:mb-4 leading-tight drop-shadow-md font-bold text-white max-w-4xl mx-auto px-2 tracking-tight"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            <span className="whitespace-nowrap sm:whitespace-normal block">Don't Let the Exam Surprise You.</span>
+            <span className="whitespace-nowrap sm:whitespace-normal block">Don't Let the Exam Surprise.</span>
             <span className="block text-xs min-[360px]:text-sm sm:text-2xl md:text-3xl font-semibold text-blue-100 mt-1.5 sm:mt-2 leading-snug">
               Practice with <span className="text-[#FF7A00] font-bold">Real Question Papers</span> & Challenge Your Preparation
             </span>
@@ -674,12 +674,6 @@ export function LandingPage() {
           </div>
           <p className="px-2">India's multi-exam prep platform · NEET · JEE · MHT-CET · HSC · SSC</p>
           <p className="mt-2 text-blue-400">© 2026 ParikshaCrack. All rights reserved.</p>
-          <button
-            onClick={() => { setLoginModalTab("admin"); setShowLoginModal(true); }}
-            className="mt-3 text-xs text-blue-500 hover:text-blue-300 transition-colors"
-          >
-            Admin Panel
-          </button>
         </div>
       </footer>
 
@@ -715,7 +709,7 @@ function LandingContentExplorer({
   subjects: StudentSubject[];
   loading: boolean;
 }) {
-  const { setView, setSelectedPaperId, setSelectedQuizId, setShowLoginModal, user } = useApp();
+  const { setView, setSelectedPaperId, setSelectedQuizId, setShowLoginModal, setLoginModalTab, user } = useApp();
   const [hierFilter, setHierFilter] = useState<HierarchicalFilterState>(EMPTY_FILTER);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"papers" | "quizzes">("papers");
@@ -724,7 +718,6 @@ function LandingContentExplorer({
   const [filterMedium, setFilterMedium] = useState("");
   const [filterYear, setFilterYear] = useState<number | "">("");
   const [previewPaper, setPreviewPaper] = useState<StudentPaper | null>(null);
-  const [previewIntent, setPreviewIntent] = useState<"view" | "download">("view");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"newest" | "downloads" | "marks">("newest");
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
@@ -1203,18 +1196,18 @@ function LandingContentExplorer({
 
 
               {trendingTopics.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto text-[11px] pt-3 border-t border-gray-100 scrollbar-hide touch-pan-x animate-apple-unveil">
-                <span className="text-gray-400 font-bold flex-shrink-0 flex items-center gap-1"><TrendingUp size={13} className="text-orange-500" /> From your library:</span>
-                {trendingTopics.map(trend => (
-                  <button
-                    key={trend}
-                    onClick={() => setSearch(trend)}
-                    className="bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 px-3 py-1 rounded-full flex-shrink-0 transition-colors font-medium text-xs"
-                  >
-                    {trend}
-                  </button>
-                ))}
-              </div>
+                <div className="flex items-center gap-2 overflow-x-auto text-[11px] pt-3 border-t border-gray-100 scrollbar-hide touch-pan-x animate-apple-unveil">
+                  <span className="text-gray-400 font-bold flex-shrink-0 flex items-center gap-1"><TrendingUp size={13} className="text-orange-500" /> From your library:</span>
+                  {trendingTopics.map(trend => (
+                    <button
+                      key={trend}
+                      onClick={() => setSearch(trend)}
+                      className="bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 px-3 py-1 rounded-full flex-shrink-0 transition-colors font-medium text-xs"
+                    >
+                      {trend}
+                    </button>
+                  ))}
+                </div>
               )}
 
               {/* Step 7: ENTER / APPLY ACTION CTA BUTTON */}
@@ -1249,8 +1242,8 @@ function LandingContentExplorer({
         <div
           id="results-grid-header"
           className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all duration-500 ${highlightResults
-              ? "border-blue-500 ring-4 ring-blue-500/30 scale-[1.01] shadow-2xl bg-blue-50/95"
-              : "bg-[#F8F9FC]/90 backdrop-blur-md border-[#E2E6EF] shadow-sm"
+            ? "border-blue-500 ring-4 ring-blue-500/30 scale-[1.01] shadow-2xl bg-blue-50/95"
+            : "bg-[#F8F9FC]/90 backdrop-blur-md border-[#E2E6EF] shadow-sm"
             }`}
         >
 
@@ -1262,8 +1255,8 @@ function LandingContentExplorer({
             <button
               onClick={() => setShowOnlyBookmarks(!showOnlyBookmarks)}
               className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 transition-all border ${showOnlyBookmarks
-                  ? "bg-amber-400 text-slate-900 border-amber-500 shadow-sm scale-105"
-                  : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                ? "bg-amber-400 text-slate-900 border-amber-500 shadow-sm scale-105"
+                : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
                 }`}
             >
               <Star size={11} className={showOnlyBookmarks ? "fill-slate-900" : "fill-amber-400"} />
@@ -1334,8 +1327,8 @@ function LandingContentExplorer({
                       data-result-card
                       style={{ animationDelay: `${idx * 0.04}s` }}
                       className={`rounded-2xl border motion-card-hover animate-stagger-card transition-all duration-500 ${highlightResults
-                          ? "border-blue-500 ring-2 ring-blue-400/40 shadow-[0_0_20px_rgba(37,99,235,0.25)] bg-blue-50/60 scale-[1.015]"
-                          : "bg-white border-gray-100 hover:border-blue-200"
+                        ? "border-blue-500 ring-2 ring-blue-400/40 shadow-[0_0_20px_rgba(37,99,235,0.25)] bg-blue-50/60 scale-[1.015]"
+                        : "bg-white border-gray-100 hover:border-blue-200"
                         } ${viewMode === "grid" ? "p-5 flex flex-col justify-between" : "p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
                         }`}
                     >
@@ -1371,12 +1364,12 @@ function LandingContentExplorer({
                       <div className={`flex items-center gap-2 ${viewMode === "grid" ? "pt-3 border-t border-gray-100 mt-4" : "flex-shrink-0"}`}>
                         <button
                           onClick={() => {
+                            setSelectedPaperId(p.id);
                             if (user) {
-                              setSelectedPaperId(p.id);
                               setView("paper-detail");
                             } else {
-                              setPreviewIntent("view");
-                              setPreviewPaper(p);
+                              setLoginModalTab("student");
+                              setShowLoginModal(true);
                             }
                           }}
                           className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] text-white hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
@@ -1385,12 +1378,12 @@ function LandingContentExplorer({
                         </button>
                         <button
                           onClick={() => {
+                            setSelectedPaperId(p.id);
                             if (user) {
-                              setSelectedPaperId(p.id);
                               setView("paper-detail");
                             } else {
-                              setPreviewIntent("download");
-                              setPreviewPaper(p);
+                              setLoginModalTab("student");
+                              setShowLoginModal(true);
                             }
                           }}
                           className="py-2 px-3 rounded-xl text-xs font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1 active:scale-95 cursor-pointer"
@@ -1445,8 +1438,8 @@ function LandingContentExplorer({
                       data-result-card
                       style={{ animationDelay: `${idx * 0.04}s` }}
                       className={`rounded-2xl border motion-card-hover animate-stagger-card transition-all duration-500 ${highlightResults
-                          ? "border-purple-500 ring-2 ring-purple-400/40 shadow-[0_0_20px_rgba(124,58,237,0.25)] bg-purple-50/60 scale-[1.015]"
-                          : "bg-white border-gray-100 hover:border-violet-200"
+                        ? "border-purple-500 ring-2 ring-purple-400/40 shadow-[0_0_20px_rgba(124,58,237,0.25)] bg-purple-50/60 scale-[1.015]"
+                        : "bg-white border-gray-100 hover:border-violet-200"
                         } ${viewMode === "grid" ? "p-5 flex flex-col justify-between" : "p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
                         }`}
                     >
@@ -1479,7 +1472,8 @@ function LandingContentExplorer({
                           if (user) {
                             setView("quiz-detail");
                           } else {
-                            setView("register");
+                            setLoginModalTab("student");
+                            setShowLoginModal(true);
                           }
                         }}
                         className={`py-2.5 rounded-xl text-xs font-bold bg-[#FF7A00] text-white hover:bg-[#E66E00] transition-colors flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer ${viewMode === "grid" ? "w-full mt-4" : "px-5 flex-shrink-0"
@@ -1568,22 +1562,26 @@ function LandingContentExplorer({
                 onClick={() => {
                   setSelectedPaperId(previewPaper.id);
                   setPreviewPaper(null);
-                  if (user) setView("paper-detail");
-                  else setView("register");
+                  if (user) {
+                    setView("paper-detail");
+                  } else {
+                    setLoginModalTab("student");
+                    setShowLoginModal(true);
+                  }
                 }}
-                className="w-full py-3 bg-[#FF7A00] text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-[#E66E00] transition-colors shadow-md flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                className="w-full py-3 bg-[#1E3A8A] text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-[#1D4ED8] transition-colors shadow-md flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
-                {previewIntent === "download" ? <><Download size={16} /> Register Free to Download PDF</> : <><UserPlus size={16} /> Register Free to View Paper</>}
+                <LogIn size={16} /> "Login to View & Download Paper"
               </button>
               <button
                 onClick={() => {
                   setSelectedPaperId(previewPaper.id);
                   setPreviewPaper(null);
-                  setShowLoginModal(true);
+                  setView("register");
                 }}
-                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-[#1E3A8A] rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {previewIntent === "download" ? "Already registered? Login to Download" : "Already registered? Login to View Paper"}
+                New student? Register Free
               </button>
             </div>
           </div>

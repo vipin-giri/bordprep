@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, FileText, Brain, Activity, TrendingUp, Loader2 } from "lucide-react";
+import { Users, FileText, Brain, Activity, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useApp } from "../context/AppContext";
 import { fetchAdminDashboard, type AdminDashboardStats } from "../../lib/api";

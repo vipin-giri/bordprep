@@ -1,3 +1,4 @@
+import { ModalPortal } from "../ui/ModalPortal";
 ﻿import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, X, CheckCircle, Megaphone, Pin, Target, Loader2 } from "lucide-react";
 import { GoalIcon } from "../shared/GoalIcons";
@@ -200,7 +201,8 @@ export function AdminAnnouncements() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center sm:p-4">
           <div className="absolute inset-0 bg-black/40" onClick={closeForm} />
           <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] overflow-y-auto animate-slide-up">
             <div className="flex justify-center pt-3 pb-1 sm:hidden">
@@ -308,6 +310,7 @@ export function AdminAnnouncements() {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {loading ? (

@@ -2,7 +2,7 @@ import {
   BookOpen, School, BookMarked, GraduationCap,
   Stethoscope, Atom, Trophy, Microscope, Calculator,
   Dna, FlaskConical, TrendingUp, Landmark, Map, BookText,
-  Languages, Globe, PenLine, BarChart2, Sigma,
+  Languages, Globe, BarChart2,
   type LucideIcon,
 } from "lucide-react";
 import type { GoalCategory } from "../data/mockData";
@@ -31,6 +31,7 @@ export function GoalIcon({ category, size = 16, className = "", style }: { categ
 
 export const SUBJECT_ICON_MAP: Record<string, LucideIcon> = {
   "Mathematics":                  Calculator,
+  "Mathematics & Statistics":     Calculator,
   "Science & Technology":         FlaskConical,
   "English":                      BookOpen,
   "Marathi":                      BookText,
@@ -45,8 +46,12 @@ export const SUBJECT_ICON_MAP: Record<string, LucideIcon> = {
   "Commerce":                     TrendingUp,
   "Economics":                    BarChart2,
   "Accountancy":                  BarChart2,
+  "Book-Keeping & Accountancy":   BarChart2,
+  "Organisation of Commerce & Management (OCM)": TrendingUp,
+  "Secretarial Practice (SP)":    BookText,
   "Political Science":            Landmark,
   "History":                      Landmark,
+  "Sociology":                    Landmark,
   "Languages":                    Languages,
   "Sanskrit":                     BookText,
   "Environmental Studies":        Globe,

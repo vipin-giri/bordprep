@@ -1,5 +1,6 @@
+import { ModalPortal } from "../ui/ModalPortal";
 ﻿import { useEffect, useRef, useState } from "react";
-import { Plus, Search, Edit2, Trash2, Eye, Download, Upload, CheckCircle, X, Loader2, FileText } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Eye, Download, Upload, CheckCircle, X, Loader2, FileText, BookOpen } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import {
   adminPaperFileUrl,
@@ -9,6 +10,7 @@ import {
   fetchAdminSubjects,
   getToken,
   updateAdminPaper,
+  uploadAdminSolution,
   type AdminPaper,
   type AdminSubject,
 } from "../../lib/api";
@@ -91,6 +93,9 @@ export function AdminPapers() {
   const [editing, setEditing] = useState<AdminPaper | null>(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const solutionInputRef = useRef<HTMLInputElement>(null);
+  const [solutionFile, setSolutionFile] = useState<File | null>(null);
+  const [solutionPriceRupees, setSolutionPriceRupees] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -143,6 +148,9 @@ export function AdminPapers() {
     setError("");
     setSaved(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (solutionInputRef.current) solutionInputRef.current.value = "";
+    setSolutionFile(null);
+    setSolutionPriceRupees("");
   };
 
   const openCreate = () => {
@@ -201,12 +209,24 @@ export function AdminPapers() {
 
     setSaving(true);
     try {
+      let savedPaperId = "";
       if (editing) {
         const { paper } = await updateAdminPaper(editing.id, payload);
+        savedPaperId = paper.id;
         setPaperList((prev) => prev.map((p) => (p.id === paper.id ? paper : p)));
       } else {
         const { paper } = await createAdminPaper(payload);
+        savedPaperId = paper.id;
         setPaperList((prev) => [paper, ...prev]);
+      }
+
+      if (savedPaperId && (solutionFile || solutionPriceRupees.trim())) {
+        const solPayload = new FormData();
+        if (solutionFile) solPayload.set("solutionFile", solutionFile);
+        if (solutionPriceRupees.trim()) {
+          solPayload.set("priceOverridePaise", String(Math.round(Number(solutionPriceRupees) * 100)));
+        }
+        await uploadAdminSolution(savedPaperId, solPayload).catch((e) => console.warn("Solution upload failed:", e));
       }
       setSaved(true);
       setTimeout(() => closeForm(), 700);
@@ -342,6 +362,7 @@ export function AdminPapers() {
       </div>
 
       {showForm && (
+        <ModalPortal>
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={editing ? "Edit paper" : "Upload paper"}>
           <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => { if (!saving) closeForm(); }} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
@@ -473,6 +494,66 @@ export function AdminPapers() {
                 )}
               </button>
 
+              
+              {/* Paper Solution Section */}
+              <div className="mt-5 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <BookOpen size={14} className="text-amber-500" /> Paper Solution (Paid)
+                  </label>
+                  <span className="text-[11px] text-slate-400">Optional · Students pay to unlock</span>
+                </div>
+                
+                <div className="mb-3">
+                  <label className="text-xs text-gray-500 mb-1 block">Custom Price in ₹ (Leave empty for auto pricing ₹5-₹49)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 9 (Auto-calculated if blank)"
+                    value={solutionPriceRupees}
+                    onChange={(e) => setSolutionPriceRupees(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-[#1E3A8A] bg-gray-50"
+                  />
+                </div>
+
+                <input
+                  ref={solutionInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    if (file && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                      setError("Only PDF files are allowed for solution.");
+                      setSolutionFile(null);
+                      return;
+                    }
+                    setError("");
+                    setSolutionFile(file);
+                  }}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => solutionInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-amber-200 bg-amber-50/40 rounded-xl p-4 text-center hover:border-amber-400 transition-colors"
+                >
+                  {solutionFile ? (
+                    <>
+                      <FileText size={20} className="mx-auto text-amber-600 mb-1.5" />
+                      <p className="text-xs text-amber-900 font-semibold">{solutionFile.name}</p>
+                      <p className="text-[10px] text-amber-700/70 mt-0.5">{(solutionFile.size / (1024 * 1024)).toFixed(2)} MB · Click to replace solution</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} className="mx-auto text-amber-400 mb-1.5" />
+                      <p className="text-xs text-slate-600 font-medium">Upload Solution PDF (optional)</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">PDF format only (max 20MB)</p>
+                    </>
+                  )}
+                </button>
+              </div>
+
               {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
 
               <div className="flex gap-3 mt-4">
@@ -494,6 +575,7 @@ export function AdminPapers() {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

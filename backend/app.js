@@ -1,3 +1,14 @@
+import {
+  adminDeleteSolution,
+  adminListSolutions,
+  adminUploadSolution,
+  createSolutionOrder,
+  getSolutionMeta,
+  handleSolutionUploadError,
+  solutionUpload,
+  streamSolutionFile,
+  verifySolutionPayment,
+} from "./solutions.js";
 import express from "express";
 import cors from "cors";
 import { initSchema } from "./db.js";
@@ -170,6 +181,15 @@ app.get("/api/quizzes", requireAuth, listStudentQuizzes);
 app.get("/api/quizzes/:id", requireAuth, getStudentQuiz);
 
 app.get("/api/announcements", requireAuth, listStudentAnnouncements);
+
+app.get("/api/papers/:id/solution/meta", requireAuth, getSolutionMeta);
+app.post("/api/papers/:id/solution/order", requireAuth, createSolutionOrder);
+app.post("/api/papers/:id/solution/verify", requireAuth, verifySolutionPayment);
+app.get("/api/papers/:id/solution/file", requireAuth, streamSolutionFile);
+
+app.get("/api/admin/solutions", requireAdmin, adminListSolutions);
+app.post("/api/admin/papers/:id/solution", requireAdmin, solutionUpload.single("solutionFile"), handleSolutionUploadError, adminUploadSolution);
+app.delete("/api/admin/papers/:id/solution", requireAdmin, adminDeleteSolution);
 
 app.get("/api/admin/subjects", requireAdmin, listSubjects);
 app.post("/api/admin/subjects", requireAdmin, createSubject);

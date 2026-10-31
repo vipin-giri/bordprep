@@ -242,6 +242,45 @@ export async function initSchema() {
     )
   `);
 
+  // ── Paper Solutions ──────────────────────────────────────────────────
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS paper_solutions (
+      id                   VARCHAR(36) PRIMARY KEY,
+      paper_id             VARCHAR(36) NOT NULL UNIQUE,
+      solution_file_name   VARCHAR(255) NULL,
+      solution_file_path   VARCHAR(500) NULL,
+      is_active            TINYINT(1) NOT NULL DEFAULT 1,
+      created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS solution_purchases (
+      id                   VARCHAR(36) PRIMARY KEY,
+      user_id              VARCHAR(36) NOT NULL,
+      paper_id             VARCHAR(36) NOT NULL,
+      solution_id          VARCHAR(36) NOT NULL,
+      amount_paise         INT NOT NULL,
+      razorpay_order_id    VARCHAR(255) NOT NULL UNIQUE,
+      razorpay_payment_id  VARCHAR(255) NULL,
+      razorpay_signature   VARCHAR(500) NULL,
+      status               VARCHAR(32) NOT NULL DEFAULT 'pending',
+      created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_sp_user   (user_id),
+      INDEX idx_sp_paper  (paper_id),
+      INDEX idx_sp_order  (razorpay_order_id)
+    )
+  `);
+
+  // Add solution_price_override column to papers (admin can override per-paper price)
+  try {
+    await pool.query("ALTER TABLE papers ADD COLUMN solution_price_override INT NULL");
+  } catch {
+    // column already exists
+  }
+
   // Data normalization: Fix 'Mathmetics' typo in database (BUG-015)
   try {
     await pool.query("UPDATE subjects SET name = 'Mathematics' WHERE name = 'Mathmetics'");

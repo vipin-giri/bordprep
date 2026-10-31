@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, CheckCircle, X } from "lucide-react";
 import { useApp } from "./context/AppContext";
@@ -112,6 +113,10 @@ function UnifiedLoginForm({ onSuccessStudent, onSuccessAdmin, onRegister }: { on
       const data = await loginAccount({ email, password });
       setToken(data.token);
       setUser(data.user as AppUser);
+      toast.success("Account created successfully! 🎉", {
+        description: "Welcome to ParikshaCrack! Let's set up your syllabus.",
+        duration: 4000,
+      });
       if (data.user.isAdmin) onSuccessAdmin();
       else onSuccessStudent();
     } catch (err) {
@@ -356,7 +361,6 @@ export function RegisterPage() {
           ))}
         </ul>
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-        {success && <p className="text-green-600 font-semibold text-sm mb-3">Password reset successful! Redirecting to login...</p>}
         <button type="submit" disabled={loading}
           className="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white py-3 rounded-xl transition-colors disabled:opacity-60 font-semibold">
           {loading ? "Creating account..." : "Create Account"}
@@ -564,6 +568,7 @@ export function ResetPasswordPage() {
         />
         <InputField label="Confirm Password" type="password" value={confirm} onChange={setConfirm} placeholder="Repeat password" icon={Lock} />
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        {success && <p className="text-green-600 font-semibold text-sm mb-3">Password reset successful! Redirecting to login...</p>}
         <button type="submit" disabled={loading}
           className="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white py-3 rounded-xl transition-colors disabled:opacity-60 font-semibold">
           {loading ? "Resetting..." : "Reset Password"}

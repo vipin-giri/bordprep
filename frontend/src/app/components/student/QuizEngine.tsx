@@ -5,7 +5,7 @@ import {
   Pause, Play, Plus, Grid, Bookmark, BookmarkCheck, Trophy, Star, ThumbsUp, Sparkles, Flame
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import type { QuizAttempt } from "../data/mockData";
+import type { QuizAttempt as QuizAttemptType } from "../data/mockData";
 import { startQuiz, submitQuizAttempt, type StudentQuiz, type StudentQuizQuestion } from "../../lib/api";
 import { MathText } from "../ui/MathText";
 import {
@@ -49,6 +49,7 @@ export function QuizDetail() {
       <button onClick={() => setView("quizzes")} className="text-[#1E3A8A] mt-3 text-sm">← Back to Quizzes</button>
     </div>
   );
+
 
   const ms = quiz.markingScheme;
 
@@ -221,6 +222,7 @@ export function QuizAttempt() {
   const [timeLeft, setTimeLeft] = useState((quiz?.timeLimitMinutes ?? 15) * 60);
   const [submitted, setSubmitted] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   const ms = quiz?.markingScheme;
 
@@ -301,12 +303,12 @@ export function QuizAttempt() {
       ? Math.round(50 + ((percentage - avgPct) / (100 - avgPct)) * 50)
       : Math.round((percentage / avgPct) * 50);
 
-    const attempt: QuizAttempt = {
+    const attempt: QuizAttemptType = {
       id: `att_${Date.now()}`,
       quizId: quiz.id,
       quizTitle: quiz.title,
       subject: quiz.subject,
-      goalCategory: quiz.goalCategory,
+      goalCategory: quiz.goalCategory as any,
       mode: currentAttempt.mode,
       totalScore,
       maxScore: quiz.totalMarks,
@@ -671,6 +673,30 @@ export function QuizAttempt() {
         </button>
       )}
 
+      {/* ── Leave Quiz Confirmation Modal ── */}
+      <AlertDialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave Quiz?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your answers are saved locally on this device. If you are in Exam Mode, your timer will keep running. Are you sure you want to exit?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowLeaveModal(false)}>Resume Quiz</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowLeaveModal(false);
+                setView("quizzes");
+              }}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
+            >
+              Exit to Quizzes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* ── Submit Confirmation Modal ── */}
       {showSubmitModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -883,7 +909,7 @@ export function QuizResult() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function QuizReview() {
-  const { completedAttempts, lastAttemptId, setView, activeQuizSession, studentQuizzes } = useApp();
+  const { completedAttempts, lastAttemptId, setView, activeQuizSession } = useApp();
 
   const attempt = lastAttemptId
     ? completedAttempts.find(a => a.id === lastAttemptId) ?? completedAttempts[0]
@@ -900,7 +926,6 @@ export function QuizReview() {
     </div>
   );
 
-  const ms = quiz.markingScheme;
 
   return (
     <div className="max-w-2xl mx-auto">

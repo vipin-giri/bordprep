@@ -102,7 +102,7 @@ export function Bookmarks() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {bookmarkedPapers.map(({ bookmark, paper }) => {
-              const typeCfg = PAPER_TYPE_CONFIG[paper.type];
+              const typeCfg = (PAPER_TYPE_CONFIG as any)[paper.type];
               return (
                 <div
                   key={bookmark.id}
@@ -163,7 +163,7 @@ export function Bookmarks() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {bookmarkedQuizzes.map(({ bookmark, quiz }) => {
-              const diffCfg = DIFFICULTY_CONFIG[quiz.difficulty] ?? DIFFICULTY_CONFIG.medium;
+              const diffCfg = (DIFFICULTY_CONFIG as any)[quiz.difficulty] ?? DIFFICULTY_CONFIG.medium;
               const ms = quiz.markingScheme;
               return (
                 <div

@@ -1,3 +1,4 @@
+import { ModalPortal } from "../ui/ModalPortal";
 ﻿import { useEffect, useState } from "react";
 import {
   Search, Shield, ShieldOff, Eye, X, Mail, BookOpen, Brain, Trophy, Calendar,
@@ -137,7 +138,8 @@ export function AdminUsers() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {selectedStudent && (
-        <div className="fixed inset-0 z-[60] bg-black/40 flex items-end sm:items-center justify-center sm:p-4">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[120] bg-black/40 flex items-end sm:items-center justify-center sm:p-4">
           <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] overflow-y-auto animate-slide-up">
             <div className="flex justify-center pt-3 pb-1 sm:hidden">
               <div className="w-10 h-1 bg-gray-200 rounded-full" />
@@ -229,10 +231,12 @@ export function AdminUsers() {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {editing && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => { if (!saving) setEditing(null); }} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="h-1.5 w-full bg-gradient-to-r from-[#1E3A8A] via-[#2563EB] to-indigo-600" />
@@ -297,6 +301,7 @@ export function AdminUsers() {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-3">

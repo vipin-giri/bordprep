@@ -87,14 +87,14 @@ function PaperRow({
                   {p.medium}
                 </span>
               )}
-              {p.session && (
+              {(p as any).session && (
                 <span className="text-[10px] bg-violet-50 text-violet-700 font-semibold px-2 py-0.5 rounded-full capitalize border border-violet-200/60">
-                  {p.session}
+                  {(p as any).session}
                 </span>
               )}
-              {p.shift && (
+              {(p as any).shift && (
                 <span className="text-[10px] bg-sky-50 text-sky-700 font-semibold px-2 py-0.5 rounded-full capitalize border border-sky-200/60">
-                  {p.shift.replace("-", " ")}
+                  {(p as any).shift.replace("-", " ")}
                 </span>
               )}
             </div>
@@ -150,7 +150,7 @@ function PaperRow({
           </div>
           <div>
             <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Standard</span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">Class {p.standard}</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">Class {(p as any).standard}</span>
           </div>
           <div>
             <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Answer Key</span>
@@ -262,7 +262,7 @@ export function PapersList() {
   const matchingPapers = studentPapers.filter((p) => {
     if (studentGoalCats.size === 0) return true;
     if (!p.goalCategory) return true;
-    return studentGoalCats.has(p.goalCategory);
+    return studentGoalCats.has(p.goalCategory as any);
   });
   const scopedPapers = matchingPapers.length > 0 ? matchingPapers : studentPapers;
 
@@ -307,7 +307,7 @@ export function PapersList() {
   // Filter matching papers
   let filtered = scopedPapers.filter(p => {
     if (activeGoal && p.goalCategory !== activeGoal) return false;
-    if (activeStream && p.stream && p.stream !== activeStream) return false;
+    if (activeStream && (p as any).stream && (p as any).stream !== activeStream) return false;
     if (activeSubject && p.subject !== activeSubject) return false;
     if (activeYear && p.year !== activeYear) return false;
     if (activePaperType && p.type !== activePaperType) return false;
@@ -338,7 +338,7 @@ export function PapersList() {
 
     return scopedPapers.filter(p => {
       if (targetGoal && p.goalCategory !== targetGoal) return false;
-      if (targetStream && p.stream && p.stream !== targetStream) return false;
+      if (targetStream && (p as any).stream && (p as any).stream !== targetStream) return false;
       if (targetSubject && p.subject !== targetSubject) return false;
       if (targetYear && p.year !== targetYear) return false;
       if (targetPaperType && p.type !== targetPaperType) return false;

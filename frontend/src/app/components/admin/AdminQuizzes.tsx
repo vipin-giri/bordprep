@@ -1,3 +1,4 @@
+import { ModalPortal } from "../ui/ModalPortal";
 ﻿import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Edit2, Trash2, CheckCircle, X, Loader2, ChevronLeft, ChevronRight, Globe, EyeOff } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -52,7 +53,7 @@ const GOAL_OPTIONS = [
   { value: "mht-cet-pcm", label: "MHT-CET PCM" },
 ];
 
-const diffColor: Record<string, string> = {
+export const diffColor: Record<string, string> = {
   easy: "bg-green-100 text-green-700",
   medium: "bg-orange-100 text-orange-700",
   hard: "bg-red-100 text-red-700",
@@ -449,6 +450,7 @@ export function AdminQuizzes() {
       </div>
 
       {showForm && (
+        <ModalPortal>
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => { if (!saving && !loadingQuiz) closeForm(); }} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden">
@@ -751,6 +753,7 @@ export function AdminQuizzes() {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

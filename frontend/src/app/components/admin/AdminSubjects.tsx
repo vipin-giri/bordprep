@@ -1,3 +1,4 @@
+import { ModalPortal } from "../ui/ModalPortal";
 ﻿import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Plus, Edit2, Trash2, X, ChevronDown, ChevronRight, BookOpen, Loader2, Upload,
@@ -119,6 +120,7 @@ function Modal({
   wide?: boolean;
 }) {
   return (
+    <ModalPortal>
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={onClose} />
       <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-hidden`}>
@@ -135,6 +137,7 @@ function Modal({
         <div className="px-6 py-5 overflow-y-auto max-h-[calc(90vh-5rem)]">{children}</div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

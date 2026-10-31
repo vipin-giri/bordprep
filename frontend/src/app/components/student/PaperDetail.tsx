@@ -1,14 +1,31 @@
-import { ArrowLeft, Bookmark, BookmarkCheck, Eye, Clock, Award, Calendar, FileText, ZoomIn, ZoomOut, Zap, Printer } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Bookmark, BookmarkCheck, Eye, Clock, Award, Calendar, FileText, ZoomIn, ZoomOut, Zap, Printer, Download, Lock, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { PAPER_TYPE_CONFIG } from "../data/mockData";
+import { studentPaperFileUrl, fetchSolutionMeta, studentSolutionFileUrl, type SolutionMeta } from "../../lib/api";
+import { SolutionPaymentModal } from "./SolutionPaymentModal";
 
 export function PaperDetail() {
-  const { selectedPaperId, setSelectedPaperId, setView, toggleBookmark, isBookmarked, studentPapers, studentContentLoading } = useApp();
+  const { selectedPaperId, setSelectedPaperId, setView, toggleBookmark, isBookmarked, studentPapers, studentContentLoading, user } = useApp();
   const [viewing, setViewing] = useState(false);
   const [zoom, setZoom] = useState(100);
+  const [solutionMeta, setSolutionMeta] = useState<SolutionMeta | null>(null);
+  const [solutionMetaLoading, setSolutionMetaLoading] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [solutionViewing, setSolutionViewing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"question" | "solution">("question");
 
   const paper = studentPapers.find(p => p.id === selectedPaperId);
+
+  useEffect(() => {
+    if (!paper?.id) return;
+    setSolutionMetaLoading(true);
+    fetchSolutionMeta(paper.id)
+      .then(setSolutionMeta)
+      .catch(() => setSolutionMeta(null))
+      .finally(() => setSolutionMetaLoading(false));
+  }, [paper?.id]);
+
   if (studentContentLoading && !paper) {
     return <div className="text-center py-20 text-gray-400"><p>Loading paper...</p></div>;
   }
@@ -20,13 +37,22 @@ export function PaperDetail() {
   );
 
   const bookmarked = isBookmarked("paper", paper.id);
-  const typeCfg = PAPER_TYPE_CONFIG[paper.type] ?? PAPER_TYPE_CONFIG["practice"];
+  const typeCfg = (PAPER_TYPE_CONFIG as any)[paper.type] ?? PAPER_TYPE_CONFIG["practice"];
+  const pdfUrl = studentPaperFileUrl(paper.id);
+  const solutionPdfUrl = studentSolutionFileUrl(paper.id);
 
   const handlePrint = () => {
-    setViewing(true);
-    setTimeout(() => {
-      window.print();
-    }, 200);
+    if (!paper.hasFile) return;
+    window.open(pdfUrl, "_blank");
+  };
+
+  const handleDownload = () => {
+    if (!paper.hasFile) return;
+    const a = document.createElement("a");
+    a.href = pdfUrl;
+    a.download = (paper.fileName ?? paper.title) + ".pdf";
+    a.target = "_blank";
+    a.click();
   };
 
   return (
@@ -49,10 +75,10 @@ export function PaperDetail() {
               </span>
               <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 sm:py-1 rounded-full font-semibold">{paper.year}</span>
               {paper.medium && <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{paper.medium}</span>}
-              {paper.standard && <span className="bg-blue-50 text-[#1E3A8A] px-2.5 py-0.5 sm:py-1 rounded-full font-semibold">Class {paper.standard}</span>}
-              {paper.session && <span className="bg-violet-50 text-violet-700 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{paper.session}</span>}
-              {paper.shift && <span className="bg-orange-50 text-orange-700 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{paper.shift.replace("-", " ")}</span>}
-              {paper.paperNumber && <span className="bg-green-50 text-green-700 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{paper.paperNumber.replace("-", " ")}</span>}
+              {(paper as any).standard && <span className="bg-blue-50 text-[#1E3A8A] px-2.5 py-0.5 sm:py-1 rounded-full font-semibold">Class {(paper as any).standard}</span>}
+              {(paper as any).session && <span className="bg-violet-50 text-violet-700 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{(paper as any).session}</span>}
+              {(paper as any).shift && <span className="bg-orange-50 text-orange-700 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{(paper as any).shift.replace("-", " ")}</span>}
+              {(paper as any).paperNumber && <span className="bg-green-50 text-green-700 px-2.5 py-0.5 sm:py-1 rounded-full capitalize">{(paper as any).paperNumber.replace("-", " ")}</span>}
               <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 sm:py-1 rounded-full font-bold flex items-center gap-1">
                 <Zap size={11} className="inline mr-0.5" /> Offline Sync Ready
               </span>
@@ -64,9 +90,8 @@ export function PaperDetail() {
 
           <button
             onClick={() => toggleBookmark("paper", paper.id)}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 border rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-              bookmarked ? "border-[#F97316] bg-orange-50 text-[#F97316]" : "border-slate-200 text-slate-600 hover:border-[#F97316] hover:text-[#F97316]"
-            }`}
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 border rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${bookmarked ? "border-[#F97316] bg-orange-50 text-[#F97316]" : "border-slate-200 text-slate-600 hover:border-[#F97316] hover:text-[#F97316]"
+              }`}
           >
             {bookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
             <span>{bookmarked ? "Saved" : "Save"}</span>
@@ -91,98 +116,105 @@ export function PaperDetail() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-5">
-          <button
-            onClick={() => setViewing(!viewing)}
-            className="w-full sm:flex-1 bg-[#1E3A8A] hover:bg-blue-900 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
-          >
-            <Eye size={16} /> {viewing ? "Close Viewer" : "View PDF Online"}
-          </button>
-          <button
-            onClick={handlePrint}
-            className="w-full sm:flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
-          >
-            <Printer size={16} /> Print / Save as PDF
-          </button>
+          {paper.hasFile ? (
+            <>
+              <button
+                onClick={() => setViewing(!viewing)}
+                className="w-full sm:flex-1 bg-[#1E3A8A] hover:bg-blue-900 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
+              >
+                <Eye size={16} /> {viewing ? "Close Viewer" : "View PDF Online"}
+              </button>
+              <button
+                onClick={handlePrint}
+                className="w-full sm:flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
+              >
+                <Printer size={16} /> Print / Save as PDF
+              </button>
+              <button
+                onClick={handleDownload}
+                className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
+              >
+                <Download size={16} /> Download PDF
+              </button>
+              {/* Solution unlock button */}
+              {!solutionMetaLoading && solutionMeta?.hasSolution && (
+                solutionMeta.purchased ? (
+                  <button
+                    onClick={() => { setSolutionViewing(!solutionViewing); setActiveTab("solution"); }}
+                    className="w-full sm:flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
+                  >
+                    <BookOpen size={16} /> {solutionViewing ? "Close Solution" : "View Solution PDF"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowPayModal(true)}
+                    className="w-full sm:flex-1 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors min-h-[44px] cursor-pointer shadow-xs active:scale-95"
+                  >
+                    <Lock size={16} /> Unlock Solution · ₹{solutionMeta.priceRupees}
+                  </button>
+                )
+              )}
+            </>
+          ) : (
+            <div className="w-full text-center py-3 rounded-xl bg-slate-100 text-slate-400 text-xs sm:text-sm font-medium border border-slate-200">
+              <FileText size={16} className="inline mr-1.5 opacity-50" />
+              No PDF uploaded for this paper yet.
+            </div>
+          )}
         </div>
       </div>
 
-      {/* PDF Viewer */}
-      {viewing && (
-        <div className="rounded-2xl p-4 sm:p-5 transition-all duration-300" style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(30,58,138,0.06)" }}>
-          <div className="flex items-center justify-between mb-4 no-print flex-wrap gap-2">
-            <h3 className="text-xs sm:text-sm font-bold text-[#1E3A8A] font-heading">PDF Viewer</h3>
-            <div className="flex items-center gap-2">
+      {/* PDF Viewer — supports side-by-side (desktop) / tabs (mobile) */}
+      {viewing && paper.hasFile && (
+        <>
+          {/* Tab bar — mobile only when solution is also viewing */}
+          {solutionViewing && (
+            <div className="flex rounded-xl overflow-hidden border border-slate-200 mb-3 sm:hidden">
               <button
-                onClick={() => setZoom(z => Math.max(50, z - 10))}
-                className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                title="Zoom Out"
+                onClick={() => setActiveTab("question")}
+                className={`flex-1 py-2 text-xs font-bold transition-colors ${activeTab === "question" ? "bg-[#1E3A8A] text-white" : "bg-white text-slate-500"}`}
               >
-                <ZoomOut size={14} className="text-slate-500" />
+                📄 Question Paper
               </button>
-              <span className="text-xs sm:text-sm font-semibold text-slate-600 w-10 text-center">{zoom}%</span>
               <button
-                onClick={() => setZoom(z => Math.min(200, z + 10))}
-                className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                title="Zoom In"
+                onClick={() => setActiveTab("solution")}
+                className={`flex-1 py-2 text-xs font-bold transition-colors ${activeTab === "solution" ? "bg-amber-500 text-white" : "bg-white text-slate-500"}`}
               >
-                <ZoomIn size={14} className="text-slate-500" />
+                📖 Solution
               </button>
             </div>
-          </div>
+          )}
 
-          {/* Scrollable Container around Scaled PDF View */}
-          <div className="overflow-x-auto max-w-full pb-2">
-            <div id="printable-paper-view" className="bg-slate-100 rounded-xl p-2 sm:p-4 min-h-80 flex flex-col items-center justify-center" style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
-              <div className="bg-white shadow-md rounded-xl w-full max-w-2xl p-4 sm:p-8">
-                <div className="text-center mb-6 sm:mb-8 border-b border-slate-200 pb-5">
-                  <div className="text-xs text-slate-500 mb-1">Maharashtra State Board of Secondary & Higher Secondary Education</div>
-                  <h2 className="text-base sm:text-xl font-bold font-heading text-[#1E3A8A] mb-1">{paper.title}</h2>
-                  <div className="flex justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-500 mt-2.5 font-medium flex-wrap">
-                    <span>Time: {paper.durationMinutes} minutes</span>
-                    <span>Total Marks: {paper.marks}</span>
-                  </div>
-                </div>
-                <div className="space-y-4 text-xs sm:text-sm text-slate-700 font-display">
-                  <div className="font-bold text-slate-800">General Instructions:</div>
-                  <ol className="list-decimal pl-4 sm:pl-5 space-y-1.5 text-slate-600">
-                    <li>All questions are compulsory unless stated otherwise.</li>
-                    <li>Write the question number correctly.</li>
-                    <li>Draw neat diagrams wherever necessary.</li>
-                    <li>Calculators are not allowed.</li>
-                    <li>Use of blue/black ink pen is compulsory.</li>
-                  </ol>
-                  <div className="mt-5 pt-4 border-t border-slate-100">
-                    <div className="font-bold text-slate-800 mb-3 font-heading">Section A — Multiple Choice Questions (20 marks)</div>
-                    <div className="space-y-3 text-slate-600">
-                      <div>Q1. Choose the correct alternative: (All questions carry 1 mark each)</div>
-                      <div className="pl-3 sm:pl-4">
-                        <div className="font-medium text-slate-800">i. Which of the following is a rational number?</div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-500 mt-1.5 pl-2 text-xs sm:text-sm">
-                          <div>a) √2</div>
-                          <div>b) √3</div>
-                          <div className="font-semibold text-emerald-700">c) √4</div>
-                          <div>d) √5</div>
-                        </div>
-                      </div>
-                      <div className="pl-3 sm:pl-4">
-                        <div className="font-medium text-slate-800">ii. The formula for sum of first n terms of an AP with first term a and common difference d is:</div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-slate-500 mt-1.5 pl-2 text-xs">
-                          <div>a) Sn = n/2[2a+(n-1)d]</div>
-                          <div>b) Sn = n[a+(n-1)d]</div>
-                          <div>c) Sn = n/2[a+l]</div>
-                          <div className="font-semibold text-emerald-700">d) Both a and c</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center text-slate-400 text-[10px] sm:text-xs mt-6 border-t pt-4 font-mono">
-                    *** This is a preview. Download the full PDF for complete question paper. ***
-                  </div>
+          {/* Viewer area — split on desktop, tabs on mobile */}
+          <div className={`rounded-2xl overflow-hidden mb-5 ${solutionViewing ? "sm:grid sm:grid-cols-2 sm:gap-3" : ""}`} style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(30,58,138,0.06)" }}>
+            {/* Question paper panel */}
+            <div className={solutionViewing && activeTab === "solution" ? "hidden sm:block" : ""}>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                <h3 className="text-xs sm:text-sm font-bold text-[#1E3A8A] font-heading">📄 Question Paper</h3>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="w-7 h-7 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><ZoomOut size={12} className="text-slate-500" /></button>
+                  <span className="text-xs font-semibold text-slate-600 w-8 text-center">{zoom}%</span>
+                  <button onClick={() => setZoom(z => Math.min(200, z + 10))} className="w-7 h-7 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><ZoomIn size={12} className="text-slate-500" /></button>
                 </div>
               </div>
+              <div style={{ height: solutionViewing ? "70vh" : "80vh" }}>
+                <iframe src={`${pdfUrl}#zoom=${zoom}`} title={paper.title} style={{ width: "100%", height: "100%", border: "none", display: "block" }} allow="fullscreen" />
+              </div>
             </div>
+
+            {/* Solution panel — only shown if purchased + solutionViewing */}
+            {solutionViewing && (
+              <div className={activeTab === "question" ? "hidden sm:block" : ""}>
+                <div className="flex items-center px-4 py-3 border-b border-amber-100 bg-amber-50/50">
+                  <h3 className="text-xs sm:text-sm font-bold text-amber-700 font-heading">📖 Solution PDF</h3>
+                </div>
+                <div style={{ height: "70vh" }}>
+                  <iframe src={`${solutionPdfUrl}`} title="Solution" style={{ width: "100%", height: "100%", border: "none", display: "block" }} allow="fullscreen" />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
 
       {/* Related Papers */}
@@ -190,7 +222,7 @@ export function PaperDetail() {
         <h3 className="mb-3 text-xs sm:text-sm font-bold font-heading text-[#1E3A8A]">Related Papers</h3>
         <div className="space-y-2">
           {studentPapers.filter(p => (p.goalCategory === paper.goalCategory) && p.id !== paper.id).slice(0, 3).map(rp => {
-            const rpCfg = PAPER_TYPE_CONFIG[rp.type] ?? PAPER_TYPE_CONFIG["practice"];
+            const rpCfg = (PAPER_TYPE_CONFIG as any)[rp.type] ?? PAPER_TYPE_CONFIG["practice"];
             return (
               <button
                 key={rp.id}
@@ -213,6 +245,26 @@ export function PaperDetail() {
           })}
         </div>
       </div>
+
+      {/* Solution Payment Modal */}
+      {showPayModal && solutionMeta && (
+        <SolutionPaymentModal
+          paperId={paper.id}
+          paperTitle={paper.title}
+          priceRupees={solutionMeta.priceRupees ?? 0}
+          razorpayKeyId={solutionMeta.razorpayKeyId}
+          userEmail={user?.email}
+          userName={user?.name}
+          onSuccess={() => {
+            setShowPayModal(false);
+            setSolutionMeta(prev => prev ? { ...prev, purchased: true } : prev);
+            setSolutionViewing(true);
+            setActiveTab("solution");
+            setViewing(true);
+          }}
+          onClose={() => setShowPayModal(false)}
+        />
+      )}
     </div>
   );
 }

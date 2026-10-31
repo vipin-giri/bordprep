@@ -57,6 +57,7 @@ export function toPaper(row) {
     goalCategory: row.goal_category || "",
     fileName: row.file_name || null,
     hasFile: Boolean(row.file_path),
+    solutionPriceOverride: row.solution_price_override != null ? Number(row.solution_price_override) : null,
     analytics: {
       views: Number(row.views ?? 0),
       downloads: Number(row.downloads ?? 0),

@@ -5,7 +5,7 @@ import {
   GraduationCap, School, Stethoscope, Cog, BookOpen, Layers, Calendar, CalendarDays, FileText, X
 } from "lucide-react";
 import { useApp, EMPTY_GLOBAL_FILTER } from "../context/AppContext";
-import { DIFFICULTY_CONFIG, PAPER_TYPE_CONFIG } from "../data/mockData";
+import { DIFFICULTY_CONFIG } from "../data/mockData";
 import type { StudentQuiz } from "../../lib/api";
 import type { FolderNode, FolderIconType } from "./FolderExplorer";
 import { buildQuizFolders } from "./contentFolders";
@@ -61,7 +61,7 @@ function QuizRow({
   onStart: () => void;
   onBookmark: () => void;
 }) {
-  const diffCfg = DIFFICULTY_CONFIG[quiz.difficulty] ?? DIFFICULTY_CONFIG.medium;
+  const diffCfg = (DIFFICULTY_CONFIG as any)[quiz.difficulty] ?? DIFFICULTY_CONFIG.medium;
   const hasAttempted = bestScore !== undefined;
   const { markingScheme: ms } = quiz;
   const [expanded, setExpanded] = useState(false);
@@ -257,7 +257,7 @@ export function QuizList() {
   const matchingQuizzes = studentQuizzes.filter((q) => {
     if (studentGoalCats.size === 0) return true;
     if (!q.goalCategory) return true;
-    return studentGoalCats.has(q.goalCategory);
+    return studentGoalCats.has(q.goalCategory as any);
   });
   const scopedQuizzes = matchingQuizzes.length > 0 ? matchingQuizzes : studentQuizzes;
 
@@ -293,7 +293,6 @@ export function QuizList() {
 
   // Filter conditions (from folder navigation OR global search)
   const activeGoal = hasGlobalFilter ? (globalSearchFilter.goalCategory || undefined) : pathStack.find(f => f.goalCategory)?.goalCategory;
-  const activeStream = hasGlobalFilter ? (globalSearchFilter.stream || undefined) : pathStack.find(f => f.stream)?.stream;
   const activeSubject = hasGlobalFilter ? (globalSearchFilter.subject || undefined) : pathStack.find(f => f.subject)?.subject;
   const activeSearch = hasGlobalFilter ? globalSearchFilter.search : "";
 

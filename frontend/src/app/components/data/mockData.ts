@@ -131,6 +131,7 @@ export interface Subject {
   goalCategory: GoalCategory;
   standard?: Standard;
   stream?: Stream;
+  streams?: Stream[];
   icon: string;
   color: string;
   chaptersCount: number;
@@ -306,20 +307,43 @@ export const subjects: Subject[] = [
   { id: "s7",   name: "Geography",                  goalCategory: "board-10", standard: "10", stream: "general", icon: "map", color: "#14B8A6", chaptersCount: 7 },
   { id: "s10b", name: "Hindi",                      goalCategory: "board-10", standard: "10", stream: "general", icon: "booktext", color: "#F97316", chaptersCount: 10 },
 
-  // Class 11 — Science PCB
-  { id: "s11-phy", name: "Physics",                 goalCategory: "board-11", standard: "11", stream: "pcb", icon: "atom", color: "#3B82F6", chaptersCount: 14 },
-  { id: "s11-che", name: "Chemistry",               goalCategory: "board-11", standard: "11", stream: "pcb", icon: "flask", color: "#8B5CF6", chaptersCount: 16 },
-  { id: "s11-bio", name: "Biology",                 goalCategory: "board-11", standard: "11", stream: "pcb", icon: "dna", color: "#10B981", chaptersCount: 16 },
-  { id: "s11-eng", name: "English",                 goalCategory: "board-11", standard: "11", stream: "pcb", icon: "book", color: "#EF4444", chaptersCount: 8 },
+  // Class 11 — Science
+  { id: "s11-phy", name: "Physics",                 goalCategory: "board-11", standard: "11", stream: "pcb", streams: ["pcb", "pcm", "pcbm"], icon: "atom", color: "#3B82F6", chaptersCount: 14 },
+  { id: "s11-che", name: "Chemistry",               goalCategory: "board-11", standard: "11", stream: "pcb", streams: ["pcb", "pcm", "pcbm"], icon: "flask", color: "#8B5CF6", chaptersCount: 16 },
+  { id: "s11-bio", name: "Biology",                 goalCategory: "board-11", standard: "11", stream: "pcb", streams: ["pcb", "pcbm"], icon: "dna", color: "#10B981", chaptersCount: 16 },
+  { id: "s11-mat", name: "Mathematics & Statistics", goalCategory: "board-11", standard: "11", stream: "pcm", streams: ["pcm", "pcbm", "commerce"], icon: "calculator", color: "#6366F1", chaptersCount: 12 },
+  { id: "s11-eng", name: "English",                 goalCategory: "board-11", standard: "11", stream: "general", streams: ["pcb", "pcm", "pcbm", "commerce", "arts"], icon: "book", color: "#EF4444", chaptersCount: 8 },
 
-  // Class 11 — Science PCM
-  { id: "s11-mat", name: "Mathematics & Statistics", goalCategory: "board-11", standard: "11", stream: "pcm", icon: "sigma", color: "#6366F1", chaptersCount: 12 },
+  // Class 11 — Commerce
+  { id: "s11-acc", name: "Book-Keeping & Accountancy", goalCategory: "board-11", standard: "11", stream: "commerce", streams: ["commerce"], icon: "chart", color: "#059669", chaptersCount: 10 },
+  { id: "s11-ocm", name: "Organisation of Commerce & Management (OCM)", goalCategory: "board-11", standard: "11", stream: "commerce", streams: ["commerce"], icon: "landmark", color: "#D97706", chaptersCount: 8 },
+  { id: "s11-eco", name: "Economics",               goalCategory: "board-11", standard: "11", stream: "commerce", streams: ["commerce", "arts"], icon: "chart", color: "#F59E0B", chaptersCount: 10 },
+  { id: "s11-sp",  name: "Secretarial Practice (SP)", goalCategory: "board-11", standard: "11", stream: "commerce", streams: ["commerce"], icon: "booktext", color: "#7C3AED", chaptersCount: 10 },
 
-  // Class 12 (HSC)
-  { id: "s11",  name: "Biology",                    goalCategory: "board-12", standard: "12", stream: "pcb", icon: "dna", color: "#10B981", chaptersCount: 16 },
-  { id: "s12",  name: "Mathematics & Statistics",   goalCategory: "board-12", standard: "12", stream: "pcm", icon: "sigma", color: "#6366F1", chaptersCount: 12 },
-  { id: "s13",  name: "Economics",                  goalCategory: "board-12", standard: "12", stream: "commerce", icon: "chart", color: "#F59E0B", chaptersCount: 10 },
-  { id: "s14",  name: "English",                    goalCategory: "board-12", standard: "12", stream: "pcb", icon: "book", color: "#EF4444", chaptersCount: 8 },
+  // Class 11 — Arts
+  { id: "s11-hist", name: "History",                goalCategory: "board-11", standard: "11", stream: "arts", streams: ["arts"], icon: "landmark", color: "#6366F1", chaptersCount: 8 },
+  { id: "s11-pol",  name: "Political Science",       goalCategory: "board-11", standard: "11", stream: "arts", streams: ["arts"], icon: "landmark", color: "#4F46E5", chaptersCount: 6 },
+  { id: "s11-geo",  name: "Geography",               goalCategory: "board-11", standard: "11", stream: "arts", streams: ["arts"], icon: "map", color: "#14B8A6", chaptersCount: 8 },
+  { id: "s11-soc",  name: "Sociology",               goalCategory: "board-11", standard: "11", stream: "arts", streams: ["arts"], icon: "booktext", color: "#EC4899", chaptersCount: 6 },
+
+  // Class 12 (HSC) — Science
+  { id: "s9",   name: "Physics",                    goalCategory: "board-12", standard: "12", stream: "pcb", streams: ["pcb", "pcm", "pcbm"], icon: "atom", color: "#3B82F6", chaptersCount: 16 },
+  { id: "s10",  name: "Chemistry",                  goalCategory: "board-12", standard: "12", stream: "pcb", streams: ["pcb", "pcm", "pcbm"], icon: "flask", color: "#8B5CF6", chaptersCount: 16 },
+  { id: "s11",  name: "Biology",                    goalCategory: "board-12", standard: "12", stream: "pcb", streams: ["pcb", "pcbm"], icon: "dna", color: "#10B981", chaptersCount: 16 },
+  { id: "s12",  name: "Mathematics & Statistics",   goalCategory: "board-12", standard: "12", stream: "pcm", streams: ["pcm", "pcbm", "commerce"], icon: "calculator", color: "#6366F1", chaptersCount: 12 },
+  { id: "s14",  name: "English",                    goalCategory: "board-12", standard: "12", stream: "general", streams: ["pcb", "pcm", "pcbm", "commerce", "arts"], icon: "book", color: "#EF4444", chaptersCount: 8 },
+
+  // Class 12 (HSC) — Commerce
+  { id: "s12-acc", name: "Book-Keeping & Accountancy", goalCategory: "board-12", standard: "12", stream: "commerce", streams: ["commerce"], icon: "chart", color: "#059669", chaptersCount: 10 },
+  { id: "s12-ocm", name: "Organisation of Commerce & Management (OCM)", goalCategory: "board-12", standard: "12", stream: "commerce", streams: ["commerce"], icon: "landmark", color: "#D97706", chaptersCount: 8 },
+  { id: "s13",     name: "Economics",               goalCategory: "board-12", standard: "12", stream: "commerce", streams: ["commerce", "arts"], icon: "chart", color: "#F59E0B", chaptersCount: 10 },
+  { id: "s12-sp",  name: "Secretarial Practice (SP)", goalCategory: "board-12", standard: "12", stream: "commerce", streams: ["commerce"], icon: "booktext", color: "#7C3AED", chaptersCount: 12 },
+
+  // Class 12 (HSC) — Arts
+  { id: "s12-hist", name: "History",                goalCategory: "board-12", standard: "12", stream: "arts", streams: ["arts"], icon: "landmark", color: "#6366F1", chaptersCount: 9 },
+  { id: "s12-pol",  name: "Political Science",       goalCategory: "board-12", standard: "12", stream: "arts", streams: ["arts"], icon: "landmark", color: "#4F46E5", chaptersCount: 6 },
+  { id: "s12-geo",  name: "Geography",               goalCategory: "board-12", standard: "12", stream: "arts", streams: ["arts"], icon: "map", color: "#14B8A6", chaptersCount: 8 },
+  { id: "s12-soc",  name: "Sociology",               goalCategory: "board-12", standard: "12", stream: "arts", streams: ["arts"], icon: "booktext", color: "#EC4899", chaptersCount: 6 },
 
   // NEET UG
   { id: "sn1",  name: "Physics",                    goalCategory: "neet", icon: "atom", color: "#3B82F6", chaptersCount: 30 },
